@@ -2,7 +2,6 @@
   "name": "jadeai",
   "version": "0.3.11",
   "private": true,
-  "main": "./out/main/index.js",
   "packageManager": "pnpm@11.0.9",
   "homepage": "https://lessup.github.io/JadeAI",
   "repository": {
@@ -23,8 +22,6 @@
     "docker:publish": "bash ./docker_publish.sh",
     "release:check": "bash ./scripts/verify-release.sh",
     "start": "next start",
-    "dev:desktop": "node scripts/build-electron.mjs --watch",
-    "build:desktop": "pnpm build && pnpm build:electron",
     "lint": "eslint",
     "test": "node --import tsx --test \"src/**/*.test.{ts,tsx}\"",
     "test:watch": "vitest",
@@ -34,10 +31,7 @@
     "db:generate:pg": "drizzle-kit generate --config drizzle-pg.config.ts",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx src/lib/db/seed.ts",
-    "build:electron": "node scripts/build-electron.mjs",
-    "dist:mac": "pnpm build:desktop && electron-builder --config config/electron-builder.config.cjs --mac",
-    "dist:win": "pnpm build:desktop && electron-builder --config config/electron-builder.config.cjs --win"
+    "db:seed": "tsx src/lib/db/seed.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -45,8 +39,7 @@
       "sharp",
       "unrs-resolver",
       "esbuild",
-      "@parcel/watcher",
-      "electron"
+      "@parcel/watcher"
     ]
   },
   "dependencies": {
@@ -65,7 +58,6 @@
     "clsx": "^2.1.1",
     "docx": "^9.0.0",
     "drizzle-orm": "^0.45.1",
-    "electron-updater": "^6.8.9",
     "jsonrepair": "^3.13.2",
     "lucide-react": "^0.563.0",
     "mupdf": "^1.27.0",
@@ -97,8 +89,6 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",
     "drizzle-kit": "^0.31.9",
-    "electron": "^43.3.0",
-    "electron-builder": "^26.15.3",
     "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",

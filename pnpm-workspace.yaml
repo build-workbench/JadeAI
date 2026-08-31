@@ -2,7 +2,6 @@ allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true
   better-sqlite3: true
-  electron-winstaller: set this to true or false
   esbuild: true
   msw: false
   sharp: true
