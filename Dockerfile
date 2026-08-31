@@ -60,6 +60,10 @@ ARG NO_PROXY
 ARG http_proxy
 ARG https_proxy
 ARG no_proxy
+# 显式固定 npm 镜像源：base 阶段的 ENV 在该阶段不总是生效（实测 pnpm fetch
+# 会直连 registry.npmjs.org 走代理，国内网络下超时失败），这里重复声明。
+ENV NPM_CONFIG_REGISTRY=https://registry.npmmirror.com \
+    COREPACK_NPM_REGISTRY=https://registry.npmmirror.com
 WORKDIR /app
 RUN set -eux; \
     proxy_http="${HTTP_PROXY:-${http_proxy:-}}"; \
