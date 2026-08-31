@@ -141,7 +141,19 @@ LABEL org.opencontainers.image.title="JadeAI" \
       org.opencontainers.image.url="https://github.com/LessUp/JadeAI" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-# Install Chromium and fonts for PDF export
+# Install Chromium, fonts, and tini for PDF export.
+#
+# tini is not optional here. Each PDF export launches a Chromium that
+# generate-pdf.ts closes correctly, but Chromium's helper processes are
+# re-parented to PID 1 as they die, and PID 1 was `node server.js` — a Node
+# process never calls wait() on children it does not know about, so every export
+# left ~4 unreaped zombies behind. They cost no memory, which is why the symptom
+# is delayed and confusing: the container looks healthy until the PID table
+# fills, at which point Chromium can no longer fork and every export fails until
+# a restart clears the table (issue #95).
+#
+# Measured on twwch/jadeai:latest: 5 exports left 20 zombies, all state Z with
+# PPID 1. The same 5 exports under `docker run --init` left zero.
 RUN set -eux; \
     proxy_http="${HTTP_PROXY:-${http_proxy:-}}"; \
     proxy_https="${HTTPS_PROXY:-${https_proxy:-}}"; \
@@ -164,7 +176,7 @@ RUN set -eux; \
         apt-get update || true; \
       done; \
     }; \
-    apt_retry_install ca-certificates wget fonts-freefont-ttf; \
+    apt_retry_install ca-certificates wget fonts-freefont-ttf tini; \
     if [ "$INSTALL_CJK_FONTS" = "true" ]; then \
       apt_retry_install fonts-noto-cjk fonts-noto-color-emoji; \
     fi; \
@@ -190,4 +202,11 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT}/" >/dev/null || exit 1
 
+# tini as PID 1 reaps the orphans and forwards signals, so `docker stop` still
+# shuts the server down cleanly. Baked into the image rather than left to
+# `docker run --init`, because the people hitting this are running the documented
+# command and have no reason to suspect a flag they were never told about.
+# NOTE: Debian (bookworm-slim, this image) installs tini at /usr/bin/tini —
+# upstream uses /sbin/tini, which only exists on Alpine.
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["node", "server.js"]

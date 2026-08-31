@@ -43,7 +43,8 @@ next-env.d.ts
 jadeai-data/*
 
 .superpowers
-.worktrees/
+.worktrees
 
 test
-/.worktrees/
+release/
+.vscode

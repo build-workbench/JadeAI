@@ -92,13 +92,13 @@ export function resolveBrowserLaunchPlan(
     return {
       kind: 'local',
       executablePath: chromePath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+      args: LAUNCH_ARGS,
     };
   }
 
   const executablePath = resolveLocalChromeExecutable(hasAccess);
   if (executablePath) {
-    return { kind: 'local', executablePath };
+    return { kind: 'local', executablePath, args: LAUNCH_ARGS };
   }
 
   if (env.ALLOW_CHROMIUM_DOWNLOAD === 'true') {
@@ -111,6 +111,16 @@ export function resolveBrowserLaunchPlan(
     'Install Chromium and set CHROME_PATH, or explicitly set ALLOW_CHROMIUM_DOWNLOAD=true to permit the runtime download fallback.',
   );
 }
+
+// Container/host-friendly Chromium flags. --disable-dev-shm-usage avoids the
+// small default /dev/shm that makes Chrome crash in Docker on constrained boxes
+// (a common cause of the process dying mid-render → 502, issue #85).
+const LAUNCH_ARGS = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+];
 
 async function getBrowser() {
   const launchPlan = resolveBrowserLaunchPlan();

@@ -1,146 +1,117 @@
-import assert from 'node:assert/strict';
-import Module from 'node:module';
-import test from 'node:test';
 
-import { resumeRepository } from '@/lib/db/repositories/resume.repository';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-const TEST_AI_CONFIG = {
-  provider: 'openai',
-  apiKey: 'test-api-key',
-  baseURL: 'https://example.com/v1',
-  model: 'gpt-4o-mini',
-} as const;
+// In-memory resume that the mocked repository reads/writes.
+const projectItem = { id: 'p1', name: 'Demo', description: 'desc', technologies: [], highlights: [] };
+let store: any;
+let lastWrite: { sectionId: string; data: any } | null;
 
-type ModuleLoader = {
-  _load: (request: string, parent: unknown, isMain: boolean) => unknown;
-};
+vi.mock('@/lib/db/repositories/resume.repository', () => ({
+  resumeRepository: {
+    findByIdForUser: vi.fn(async () => store),
+    updateSection: vi.fn(async (sectionId: string, data: any) => {
+      lastWrite = { sectionId, data };
+      const s = store.sections.find((x: any) => x.id === sectionId);
+      if (s) Object.assign(s, data);
+      return s;
+    }),
+  },
+}));
 
-test('updateSection can rename section title with field="title"', async (t) => {
-  const originalFindByIdForUser = resumeRepository.findByIdForUser;
-  const originalUpdateSection = resumeRepository.updateSection;
-  const moduleLoader = Module as unknown as ModuleLoader;
-  const originalModuleLoad = moduleLoader._load;
+import { createExecutableTools } from './tools';
 
-  const updates: Array<{
-    id: string;
-    data: Partial<{ title: string; sortOrder: number; visible: boolean; content: unknown }>;
-  }> = [];
-
-  resumeRepository.findByIdForUser = async () =>
-    ({
-      sections: [
-        {
-          id: 'custom-section-1',
-          type: 'custom',
-          title: '旧标题',
-          content: {
-            items: [{ id: 'item-1', title: '条目标题', description: '条目描述' }],
-          },
-        },
-      ],
-    }) as Awaited<ReturnType<typeof resumeRepository.findByIdForUser>>;
-
-  resumeRepository.updateSection = async (id, data) => {
-    updates.push({ id, data });
+function makeStore() {
+  store = {
+    id: 'r1',
+    sections: [
+      { id: 'sec-proj', type: 'projects', title: 'Projects', content: { items: [projectItem] } },
+      { id: 'sec-skills', type: 'skills', title: 'Skills', content: { categories: [] } },
+    ],
   };
+  lastWrite = null;
+}
 
-  t.after(() => {
-    moduleLoader._load = originalModuleLoad;
-    resumeRepository.findByIdForUser = originalFindByIdForUser;
-    resumeRepository.updateSection = originalUpdateSection;
+function getTools() {
+  return createExecutableTools({ resumeId: 'r1', aiConfig: {} as any, userId: 'u1' });
+}
+
+async function runUpdate(input: { sectionId: string; field: string; value: string }) {
+  const tools = getTools();
+  return (tools.updateSection.execute as any)(input, { toolCallId: 't', messages: [] });
+}
+
+describe('updateSection — list field validation (issue #69)', () => {
+  beforeEach(makeStore);
+
+  it('accepts a correct JSON array for items and writes an array', async () => {
+    const value = JSON.stringify([{ id: 'p2', name: 'New project', description: 'x' }]);
+    const res = await runUpdate({ sectionId: 'sec-proj', field: 'items', value });
+
+    expect(res.success).toBe(true);
+    expect(Array.isArray(lastWrite?.data.content.items)).toBe(true);
+    expect(lastWrite?.data.content.items[0].name).toBe('New project');
   });
 
-  moduleLoader._load = (request, parent, isMain) => {
-    if (request === 'server-only') return {};
-    return originalModuleLoad(request, parent, isMain);
-  };
+  it('recovers a double-encoded JSON array string into a real array', async () => {
+    // AI passed a JSON string that itself contains a JSON-array string (double-encoded).
+    const inner = JSON.stringify([{ id: 'p3', name: 'Double', description: 'y' }]);
+    const value = JSON.stringify(inner); // double-encoded
 
-  const { createExecutableTools } = await import('./tools');
-  const tools = createExecutableTools({
-    resumeId: 'resume-1',
-    aiConfig: TEST_AI_CONFIG,
-    userId: 'user-1',
-  });
-  const updateSectionTool = tools.updateSection as {
-    execute?: (input: { sectionId: string; field: string; value: string }) => Promise<{ success: boolean }>;
-  };
-  assert.ok(updateSectionTool.execute);
+    const res = await runUpdate({ sectionId: 'sec-proj', field: 'items', value });
 
-  const result = await updateSectionTool.execute({
-    sectionId: 'custom-section-1',
-    field: 'title',
-    value: '技术关键字',
+    expect(res.success).toBe(true);
+    expect(Array.isArray(lastWrite?.data.content.items)).toBe(true);
+    expect(lastWrite?.data.content.items[0].name).toBe('Double');
   });
 
-  assert.equal(result.success, true);
-  assert.equal(updates.length, 1);
-  assert.deepEqual(updates[0], {
-    id: 'custom-section-1',
-    data: { title: '技术关键字' },
-  });
-});
+  it('rejects a plain text string for items and does NOT write to the DB', async () => {
+    const res = await runUpdate({ sectionId: 'sec-proj', field: 'items', value: 'just some text' });
 
-test('updateSection can rename section title with field="sectionTitle"', async (t) => {
-  const originalFindByIdForUser = resumeRepository.findByIdForUser;
-  const originalUpdateSection = resumeRepository.updateSection;
-  const moduleLoader = Module as unknown as ModuleLoader;
-  const originalModuleLoad = moduleLoader._load;
-
-  const updates: Array<{
-    id: string;
-    data: Partial<{ title: string; sortOrder: number; visible: boolean; content: unknown }>;
-  }> = [];
-
-  resumeRepository.findByIdForUser = async () =>
-    ({
-      sections: [
-        {
-          id: 'custom-section-2',
-          type: 'custom',
-          title: 'Original',
-          content: {
-            items: [{ id: 'item-2', title: 'Item', description: 'desc' }],
-          },
-        },
-      ],
-    }) as Awaited<ReturnType<typeof resumeRepository.findByIdForUser>>;
-
-  resumeRepository.updateSection = async (id, data) => {
-    updates.push({ id, data });
-  };
-
-  t.after(() => {
-    moduleLoader._load = originalModuleLoad;
-    resumeRepository.findByIdForUser = originalFindByIdForUser;
-    resumeRepository.updateSection = originalUpdateSection;
+    expect(res.success).toBe(false);
+    expect(lastWrite).toBeNull();
   });
 
-  moduleLoader._load = (request, parent, isMain) => {
-    if (request === 'server-only') return {};
-    return originalModuleLoad(request, parent, isMain);
-  };
+  it('rejects an object value for items and does NOT write to the DB', async () => {
+    // Bare object that is not a list and has no items array to unwrap.
+    const res = await runUpdate({ sectionId: 'sec-proj', field: 'items', value: JSON.stringify({ foo: 'bar' }) });
 
-  const { createExecutableTools } = await import('./tools');
-  const tools = createExecutableTools({
-    resumeId: 'resume-1',
-    aiConfig: TEST_AI_CONFIG,
-    userId: 'user-1',
-  });
-  const updateSectionTool = tools.updateSection as {
-    execute?: (input: { sectionId: string; field: string; value: string }) => Promise<{ success: boolean }>;
-  };
-  assert.ok(updateSectionTool.execute);
-
-  const result = await updateSectionTool.execute({
-    sectionId: 'custom-section-2',
-    field: 'sectionTitle',
-    value: 'Technical Keywords',
+    expect(res.success).toBe(false);
+    expect(lastWrite).toBeNull();
   });
 
-  assert.equal(result.success, true);
-  assert.equal(updates.length, 1);
-  assert.deepEqual(updates[0], {
-    id: 'custom-section-2',
-    data: { title: 'Technical Keywords' },
+  it('unwraps an object that wraps an items array', async () => {
+    const value = JSON.stringify({ items: [{ id: 'p4', name: 'Wrapped', description: 'z' }] });
+    const res = await runUpdate({ sectionId: 'sec-proj', field: 'items', value });
+
+    expect(res.success).toBe(true);
+    expect(Array.isArray(lastWrite?.data.content.items)).toBe(true);
+    expect(lastWrite?.data.content.items[0].name).toBe('Wrapped');
+  });
+
+  it('recovers a double-encoded categories string for skills', async () => {
+    const inner = JSON.stringify([{ id: 'c1', name: 'Languages', skills: ['Go'] }]);
+    const value = JSON.stringify(inner);
+    const res = await runUpdate({ sectionId: 'sec-skills', field: 'categories', value });
+
+    expect(res.success).toBe(true);
+    expect(Array.isArray(lastWrite?.data.content.categories)).toBe(true);
+    expect(lastWrite?.data.content.categories[0].name).toBe('Languages');
+  });
+
+  it('coerces an item.highlights written as a string into an array (issue #87)', async () => {
+    const value = JSON.stringify([{ id: 'p9', name: 'X', description: 'y', highlights: 'Shipped it' }]);
+    const res = await runUpdate({ sectionId: 'sec-proj', field: 'items', value });
+
+    expect(res.success).toBe(true);
+    expect(Array.isArray(lastWrite?.data.content.items[0].highlights)).toBe(true);
+    expect(lastWrite?.data.content.items[0].highlights).toEqual(['Shipped it']);
+  });
+
+  it('coerces a category.skills written as a string into an array (issue #87)', async () => {
+    const value = JSON.stringify([{ id: 'c2', name: 'Langs', skills: 'Go\nRust' }]);
+    const res = await runUpdate({ sectionId: 'sec-skills', field: 'categories', value });
+
+    expect(res.success).toBe(true);
+    expect(lastWrite?.data.content.categories[0].skills).toEqual(['Go', 'Rust']);
   });
 });

@@ -15,6 +15,7 @@ import {
 } from '@/lib/editor/resume-version-history-status';
 import { useEditorStore } from '@/stores/editor-store';
 import { useSettingsStore } from '@/stores/settings-store';
+import { normalizeSectionContent } from '@/lib/resume/normalize-content';
 
 interface ResumeStore {
   currentResume: Resume | null;
@@ -22,6 +23,8 @@ interface ResumeStore {
   isDirty: boolean;
   isSaving: boolean;
   _saveTimeout: ReturnType<typeof setTimeout> | null;
+  /** 正在飞的那次 PUT。用来串行化，避免两次保存乱序落库 */
+  _savePromise: Promise<void> | null;
 
   setResume: (resume: Resume) => void;
   updateSection: (sectionId: string, content: Partial<SectionContent>) => void;
@@ -33,6 +36,7 @@ interface ResumeStore {
   setTemplate: (template: string) => void;
   setTitle: (title: string) => void;
   save: (options?: { source?: ResumeVersionSource; forceVersion?: boolean }) => Promise<void>;
+  flushSave: () => Promise<void>;
   _scheduleSave: () => void;
   reset: () => void;
 }
@@ -144,35 +148,21 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   isDirty: false,
   isSaving: false,
   _saveTimeout: null,
+  _savePromise: null,
 
   setResume: (resume) => {
     // Cancel any pending autosave to prevent stale data overwriting server changes (e.g., from AI tool calls)
     const { _saveTimeout } = get();
     if (_saveTimeout) clearTimeout(_saveTimeout);
 
-    // Normalize: ensure all items/categories in section content have id fields.
-    // Work on a clone so the caller's object is never mutated in place (the
-    // clone also keeps prior zustand snapshots intact).
-    const sections = (resume.sections || []).map((s) => {
-      const content = structuredClone((s.content ?? {}) as unknown) as Record<string, unknown>;
-      const withStableIds = (value: unknown) => {
-        if (!Array.isArray(value)) return value;
-
-        return value.map((entry) => {
-          if (typeof entry !== 'object' || entry === null) return entry;
-          if ('id' in entry && entry.id) return entry;
-          return { ...entry, id: generateId() };
-        });
-      };
-
-      if (Array.isArray(content?.items)) {
-        content.items = withStableIds(content.items);
-      }
-      if (Array.isArray(content?.categories)) {
-        content.categories = withStableIds(content.categories);
-      }
-      return { ...s, content: content as unknown as typeof s.content };
-    });
+    // Normalize section content into the shape the renderers expect. Beyond adding
+    // missing item/category ids, this coerces list fields (highlights/technologies/
+    // skills) back into arrays so a resume that the AI corrupted (issue #87) can be
+    // opened and repaired instead of crashing the editor on render.
+    const sections = (resume.sections || []).map((s) => ({
+      ...s,
+      content: normalizeSectionContent(s.type, s.content) as unknown as typeof s.content,
+    }));
 
     set({
       currentResume: { ...resume, sections },
@@ -292,8 +282,13 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
   },
 
   save: async (options) => {
-    const { currentResume, sections, isDirty, isSaving } = get();
     const source = options?.source ?? 'manual';
+    // 已经有一次在飞就先等它落地。两次 PUT 并行的话，先发的那次可能后到，
+    // 于是旧内容盖掉新内容——防抖保存和 flushSave 撞在一起时正好会这样。
+    const inFlight = get()._savePromise;
+    if (inFlight) await inFlight;
+
+    const { currentResume, sections, isDirty, isSaving } = get();
     if (!currentResume || isSaving) return;
     const requestedDraftSnapshot = createResumeDraftSnapshot({
       ...currentResume,
@@ -324,8 +319,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       set({ _saveTimeout: null });
     }
 
-    set({ isSaving: true });
-    try {
+    const request = (async () => {
       const fingerprint = typeof window !== 'undefined'
         ? localStorage.getItem('jade_fingerprint')
         : null;
@@ -437,15 +431,41 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       } catch (error) {
         handleLocalVersionHistoryFailure(error);
       }
+    })();
+
+    set({ isSaving: true, _savePromise: request });
+    try {
+      await request;
+    } catch (error) {
+      console.error('Failed to save resume:', error);
     } finally {
-      // Only clear isSaving for the resume this save belongs to — if the user
-      // already navigated to another resume, its own in-flight save flag must
-      // not be touched (clearing it could allow a duplicate concurrent PUT).
+      // Only clear isSaving/_savePromise for the resume this save belongs to —
+      // if the user already navigated to another resume, its own in-flight save
+      // flag must not be touched (clearing it could allow a duplicate concurrent PUT).
       const currentStoreResume = get().currentResume;
       if (!currentStoreResume || currentStoreResume.id === currentResume.id) {
-        set({ isSaving: false });
+        set({ isSaving: false, _savePromise: null });
       }
     }
+  },
+
+  /**
+   * 立刻把未保存的改动写回服务端，等写完再返回。
+   *
+   * 所有 AI 功能（对话、JD 匹配、求职信、语法检查、翻译、模拟面试）在服务端都是
+   * 拿 resumeId 回库里读简历的，客户端不上传正文。所以只要防抖保存还没触发，
+   * AI 看到的就是上一版——间隔最长能调到 5 秒，关掉自动保存更是永远不会写。
+   * 这就是 issue #96：手动改完立刻问 AI，AI 在旧简历上改。
+   *
+   * 不看 autoSave 开关：用户主动把简历交给 AI 处理，本身就意味着要用当前这一版。
+   */
+  flushSave: async () => {
+    const { _saveTimeout } = get();
+    if (_saveTimeout) {
+      clearTimeout(_saveTimeout);
+      set({ _saveTimeout: null });
+    }
+    await get().save();
   },
 
   _scheduleSave: () => {
@@ -488,6 +508,7 @@ export const useResumeStore = create<ResumeStore>((set, get) => ({
       isDirty: false,
       isSaving: false,
       _saveTimeout: null,
+      _savePromise: null,
     });
   },
 }));

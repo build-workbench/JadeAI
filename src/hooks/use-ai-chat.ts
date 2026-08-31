@@ -77,6 +77,7 @@ export function useAIChat({ resumeId, sessionId, initialMessages, selectedModel 
     [resumeId, selectedModel, sessionId]
   );
 
+
   const {
     messages,
     sendMessage: rawSendMessage,
@@ -90,6 +91,7 @@ export function useAIChat({ resumeId, sessionId, initialMessages, selectedModel 
     id: sessionId,
     transport,
   });
+
 
   const latestAssistantMessage = getLatestAssistantMessage(messages);
   const hasRenderableAssistantReply = hasRenderableAssistantReplySinceRequest(
@@ -237,6 +239,7 @@ export function useAIChat({ resumeId, sessionId, initialMessages, selectedModel 
     if (localMessages.length > 0) {
       setLocalMessages([]);
     }
+
 
     clearError();
     setPreflightError(null);

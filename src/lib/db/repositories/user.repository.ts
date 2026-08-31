@@ -3,6 +3,7 @@ import { db } from '../index';
 import { users, resumes } from '../schema';
 import { resumeRepository } from './resume.repository';
 import { createSampleResume } from '../sample-resume';
+import { LOCAL_USER_ID, LOCAL_USER_NAME } from '../../auth/local-user';
 
 export const userRepository = {
   async findById(id: string) {
@@ -54,7 +55,63 @@ export const userRepository = {
     return this.findById(id);
   },
 
-  async create(data: { id?: string; email?: string; name?: string; avatarUrl?: string; authType: 'oauth' | 'fingerprint'; fingerprint?: string }) {
+  /**
+   * Return the desktop client's single local user, creating it on first call.
+   *
+   * Idempotent and cheap (one indexed lookup on the hot path), so it is safe to
+   * call from resolveUser() on every request. Deliberately NOT called from
+   * SQLiteAdapter.initialize(): this module imports `db` from '../index', so
+   * having the adapter call back into it would close an import cycle during
+   * module evaluation.
+   */
+  async ensureLocalUser() {
+    const existing = await this.findById(LOCAL_USER_ID);
+    if (existing) return existing;
+
+    // onConflictDoNothing() guards against a concurrent insert racing us between
+    // the findById above and this insert — e.g. settings-store's hydrate() and
+    // the dashboard's fetchResumes() both call resolveUser() -> ensureLocalUser()
+    // in parallel on first launch, before the row exists. `.returning()` tells us
+    // whether *this* call is the one that actually inserted the row: it comes
+    // back empty when a concurrent caller won the race. Only the inserting call
+    // should seed the starter resume below — otherwise every racing caller would
+    // seed its own, leaving the user with several duplicate sample resumes.
+    const inserted = await db
+      .insert(users)
+      .values({
+        id: LOCAL_USER_ID,
+        authType: 'local',
+        name: LOCAL_USER_NAME,
+      })
+      .onConflictDoNothing()
+      .returning({ id: users.id });
+
+    const created = await this.findById(LOCAL_USER_ID);
+    if (!created) {
+      throw new Error(`Failed to create the local user (id=${LOCAL_USER_ID})`);
+    }
+
+    if (inserted.length === 0) {
+      // A concurrent caller won the race and inserted the row; that call (not
+      // this one) owns seeding, so just return what's already there.
+      return created;
+    }
+
+    // First run: give the user something to look at instead of an empty
+    // dashboard. Deliberately non-fatal — resolveUser() calls this on every
+    // desktop request, and an empty dashboard is cosmetic where a failed
+    // request is not. Note the user row is already committed at this point,
+    // so a failure here leaves a usable (if empty) account.
+    try {
+      await createSampleResume(LOCAL_USER_ID);
+    } catch (e) {
+      console.error('[db] failed to create the starter resume for the local user:', e);
+    }
+
+    return created;
+  },
+
+  async create(data: { id?: string; email?: string; name?: string; avatarUrl?: string; authType: 'oauth' | 'fingerprint' | 'local'; fingerprint?: string }) {
     const id = data.id || crypto.randomUUID();
     await db.insert(users).values({ ...data, id });
     return this.findById(id);

@@ -132,7 +132,8 @@
       "coverLetter": "求职信",
       "grammarCheck": "语法检查",
       "share": "分享",
-      "import": "导入"
+      "import": "导入",
+      "previewError": "预览渲染失败，可能是内容格式有误。请在左侧编辑修复，或撤销最近的 AI 修改。"
     },
     "versionHistory": {
       "title": "版本历史",
@@ -232,6 +233,10 @@
       "qrAdd": "添加二维码",
       "qrUrlInvalid": "请输入有效的链接地址",
       "addItem": "添加条目",
+      "insertAbove": "在上方插入",
+      "moveUp": "上移",
+      "moveDown": "下移",
+      "dragToReorder": "拖动调整排序",
       "removeItem": "删除条目",
       "summaryBlock": "文本块 #{index}",
       "addTextBlock": "添加文本块",
@@ -239,9 +244,18 @@
       "clear": "清除",
       "dateDisplay": "{year}年{month}",
       "months": {
-        "01": "1月", "02": "2月", "03": "3月", "04": "4月",
-        "05": "5月", "06": "6月", "07": "7月", "08": "8月",
-        "09": "9月", "10": "10月", "11": "11月", "12": "12月"
+        "01": "1月",
+        "02": "2月",
+        "03": "3月",
+        "04": "4月",
+        "05": "5月",
+        "06": "6月",
+        "07": "7月",
+        "08": "8月",
+        "09": "9月",
+        "10": "10月",
+        "11": "11月",
+        "12": "12月"
       }
     }
   },
@@ -401,6 +415,8 @@
     "currentState": "当前",
     "suggestedChange": "建议",
     "optimize": "一键优化",
+    "optimizeCopy": "复制优化",
+    "copyOptimizeError": "复制简历失败，请重试",
     "pasteJd": "粘贴职位描述以开始分析",
     "noResults": "暂无分析结果",
     "newAnalysis": "新分析",
@@ -533,6 +549,8 @@
     "exporting": "导出中...",
     "success": "导出成功！",
     "error": "导出失败，请重试。",
+    "pdfFailedHint": "服务器生成 PDF 失败（可能未安装 Chromium 或资源不足）。可改用浏览器打印为 PDF。",
+    "printFallback": "用浏览器打印为 PDF",
     "cancel": "取消"
   },
   "import": {
@@ -838,6 +856,7 @@
       "continue": "继续面试",
       "start": "进入面试",
       "viewReport": "查看报告",
+      "viewRecord": "查看面试记录",
       "deleteConfirm": "确定要删除这场面试记录吗？此操作不可恢复。"
     },
     "setup": {
@@ -938,5 +957,286 @@
       "leader": "Leader面",
       "custom": "自定义"
     }
+  },
+  "recruit": {
+    "nav": "招聘",
+    "title": "招聘岗位",
+    "subtitle": "上传 JD 与简历，生成面试题，面完打分",
+    "empty": "还没有岗位，先创建一个",
+    "createJob": "新建岗位",
+    "stats": {
+      "candidates": "候选人",
+      "interviewed": "已面",
+      "interviewing": "面试中",
+      "passed": "通过"
+    },
+    "editJob": "编辑岗位",
+    "deleteJob": "删除岗位",
+    "deleteJobConfirm": "删除岗位会一并删除它下面的所有候选人和评价，无法恢复。确定继续吗？",
+    "jobTitle": "岗位名称",
+    "jobTitlePlaceholder": "如：高级前端工程师",
+    "jobDescription": "职位描述（JD）",
+    "jobDescriptionPlaceholder": "粘贴完整的 JD",
+    "questionCount": "生成题目数量",
+    "candidateCount": "{count} 位候选人",
+    "save": "保存",
+    "cancel": "取消",
+    "list": {
+        "back": "招聘岗位",
+        "backToCandidates": "候选人",
+        "jobSettings": "岗位设置",
+        "summary": "{total} 位候选人 · {interviewing} 位面试中 · {questions} 题",
+        "searchPlaceholder": "搜索候选人",
+        "progress": "已记 {done}/{total}",
+        "noQuestions": "还没生成题目",
+        "noResume": "还没上传简历"
+    },
+    "actions": {
+        "uploadResume": "传简历",
+        "generateQuestions": "生成题目",
+        "startInterview": "开始面试",
+        "continueInterview": "继续面试 {done}/{total}",
+        "viewReport": "看报告",
+        "viewRecord": "查看",
+        "operation": "操作"
+    },
+    "prep": {
+        "title": "准备",
+        "dimensionsTitle": "考察维度",
+        "dimensionsHint": "题目按权重分配给各维度，改配置会影响这个岗位下所有候选人",
+        "editJobConfig": "改岗位配置",
+        "generateHint": "生成后直接进入面试台",
+        "hasQuestions": "已生成 {count} 题"
+    },
+    "stage": {
+        "elapsed": "已用 {minutes} 分钟",
+        "finish": "结束面试",
+        "backToReport": "返回报告",
+        "next": "下一题",
+        "noRecord": "本题没有面试记录",
+        "prev": "上一题",
+        "recordNext": "记录并下一题",
+        "recordFinish": "记录并结束",
+        "skip": "跳过此题",
+        "unskip": "取消跳过",
+        "exit": "退出",
+        "shortcutNext": "下一题",
+        "shortcutExit": "退出",
+        "empty": "这个候选人还没有题目",
+        "goPrep": "去生成题目"
+    },
+    "report": {
+        "title": "复盘"
+    },
+    "overview": {
+      "stats": "{total} 位候选人 · {evaluated} 已评价",
+      "avgScore": "均分 {score}",
+      "expandJd": "展开全文",
+      "collapseJd": "收起",
+      "compare": "候选人对比",
+      "selectCandidate": "从左侧选择一位候选人"
+    },
+    "steps": {
+      "resume": "简历",
+      "questions": "面试题",
+      "evaluation": "评价"
+    },
+    "dimensions": {
+      "title": "考察维度",
+      "hint": "每个滑块直接设置该维度生成几道题，总题数自动相加",
+      "totalQuestions": "合计生成 {count} 道题",
+      "addCustom": "添加自定义维度",
+      "aiRecognize": "AI 识别",
+      "recognizing": "识别中…",
+      "needJobInfo": "请先填写岗位名称和职位描述",
+      "recognizeSuccess": "已根据 JD 填充各维度题数和考察范围",
+      "recognizeFailed": "AI 识别失败，请检查模型设置后重试",
+      "customPlaceholder": "维度名称",
+      "weight": "题目数量",
+      "descriptions": {
+        "go_fundamentals": "【考察目标】系统评估候选人对 Go 语言原理、运行时机制及生产级工程实践的掌握程度，而非 API 记忆。【知识范围】类型系统、接口与反射、slice/map/string、错误处理、泛型；GMP 调度、goroutine、channel、select、context；sync/atomic、内存模型、竞态与死锁；栈增长、逃逸分析、GC、对象复用；netpoll、I/O 与系统调用。【工程实践】并发模型设计、生命周期治理、优雅退出、限流与背压、资源泄漏防治、测试与可观测性。【诊断能力】能使用 race detector、pprof、trace、benchmark 和运行时指标定位 CPU、内存、阻塞、锁竞争及 goroutine 泄漏。【评价重点】优秀回答应从机制推导现象，给出验证步骤、指标与取舍；只背术语、绝对化结论或无法关联生产问题属于风险信号。",
+        "backend_fundamentals": "【考察目标】评估构建可靠后端服务所需的计算机基础和工程能力。【知识范围】进程/线程/协程、内存与文件 I/O；TCP、HTTP/1.1/2/3、DNS、TLS、连接复用；REST/RPC、序列化、鉴权授权、API 版本治理；并发控制、超时、重试、幂等、熔断、限流、降级。【工程实践】配置管理、日志、指标、链路追踪、灰度发布、错误码设计、单元/集成测试和安全基线。【场景能力】能处理慢请求、连接耗尽、重试风暴、接口兼容、流量突增和依赖异常。【评价重点】优秀回答应明确约束与 SLO，按证据定位问题并说明方案边界和失败模式；仅罗列组件而缺少机制与验证方法属于弱表现。",
+        "middleware_database": "【考察目标】评估候选人对数据存储和基础中间件的原理、选型、调优及故障治理能力。【数据库】数据建模、索引结构与执行计划、事务 ACID、隔离级别、MVCC、锁与死锁、复制、分片、备份恢复及一致性。【缓存】Redis 数据结构、淘汰与过期、穿透/击穿/雪崩、热点 Key、分布式锁、缓存一致性。【消息系统】Kafka/RabbitMQ 的分区、顺序、投递语义、重复消费、积压、再均衡和死信治理。【工程实践】连接池、容量规划、监控告警、数据迁移、故障演练和降级恢复。【评价重点】要求结合业务读写模型说明选型，能用指标和执行证据定位问题，并识别性能、一致性、成本和复杂度之间的取舍。",
+        "project_deep_dive": "【考察目标】验证简历项目的真实性、个人贡献深度及端到端交付能力。【考察范围】业务目标、用户与成功指标；规模、流量、数据量、延迟、成本及合规约束；候选人的职责边界和关键产出；架构演进、技术选型及备选方案；核心难点、线上事故、性能优化、质量保障、发布运维与复盘。【追问路径】背景与约束→个人决策→实现细节→量化结果→失败与教训→反事实方案。【证据要求】区分个人与团队贡献，要求提供设计、代码、指标、日志、实验或协作过程等可核验证据。【评价重点】优秀回答具体、前后一致并能解释代价；只讲技术名词、模糊使用“我们”、无法说明指标来源或把结果归因于自己属于风险信号。",
+        "system_scenario": "【考察目标】评估候选人在信息不完整条件下进行系统设计、容量规划和故障处置的能力。【设计范围】需求澄清、SLA/SLO、容量估算、数据模型、接口与服务边界、同步/异步链路、一致性、可用性、扩展性、安全、成本与可运维性。【稳定性】限流、熔断、降级、隔离、重试、幂等、容灾、多活、扩缩容和数据恢复。【排障路径】从现象和影响面出发，提出假设，按验证成本排序，选择日志/指标/追踪/实验获取证据，完成止损、根因定位和长期治理。【评价重点】优秀回答会主动澄清约束、量化规模、说明关键取舍与演进路线；直接堆砌组件、忽视失败模式或没有验证闭环属于弱表现。",
+        "communication_pressure": "【考察目标】评估候选人在复杂协作和高压环境中的结构化沟通、冲突处理与责任担当。【场景范围】需求频繁变化、技术方案被质疑、跨团队依赖延期、资源不足、排期压缩、线上事故、客户投诉、质量与交付冲突。【能力要点】识别利益相关方和共同目标；先结论后依据地表达；主动澄清事实与分歧；用数据推动决策；管理预期并形成责任人、时间点和升级机制；在压力下守住安全、质量与合规底线。【行为证据】重点追问候选人当时说了什么、做了什么、如何影响他人及结果如何。【评价重点】优秀回答兼顾同理心、原则和执行闭环；甩锅、回避冲突、只说“多沟通”或无底线承诺属于风险信号。",
+        "hr_motivation": "【考察目标】评估候选人的求职动机、职业稳定性、价值观与岗位长期匹配度。【考察范围】教育与工作时间线、每次选择和离开原因、转型动机、成就与挫折、自我认知、学习与成长目标、工作内容偏好、团队与管理偏好、地域/薪酬/到岗等现实约束。【岗位匹配】是否理解岗位职责、核心挑战和发展路径；现有能力如何迁移；能力缺口如何补齐；未来 1—3 年目标是否与团队机会一致。【一致性验证】结合简历和前序技术回答交叉追问，区分真实动机与通用话术。【评价重点】优秀回答具体、诚实且选择逻辑稳定；贬低前雇主、频繁归因外部、诉求与岗位明显冲突或回答前后矛盾属于风险信号。",
+        "stress": "问简历上真实的高压时刻：他扛下来的线上事故、被砍掉一半的排期、两个老板要求相反的事。然后就他的回答追问一次，看他是守得住自己的判断还是立刻改口。好的回答说得清当时先保什么、砍了什么、现在会怎么改；「我就是更拼一点」不算。",
+        "logic": "看候选人怎么拆一个含糊的问题。给一个贴着这个岗位的真实场景——指标反常、1% 的请求变慢、容量估算——看他能不能按「可能性 × 验证成本」排查。不要脑筋急转弯。好的回答会讲清假设、切分问题，并说出什么证据能推翻哪条分支。",
+        "communication": "看候选人能不能把自己项目里复杂的东西讲给特定的人听懂：产品经理、刚入职的同事、发火的客户；再看他被更资深的人当面反对时怎么应对。判断结构（先说结论）、是否照顾听众、会不会说个没完。不是看他友不友善。",
+        "professional": "深挖简历上那套技术栈和系统：当时做了哪些取舍、为什么选 A 不选 B、线上出过什么问题、代价是什么。好的回答给得出具体约束、数字和踩过的坑；只会背概念、或者停在「我们用了 X」的，算不合格。",
+        "teamwork": "问摩擦，不是问和谐：吵起来的 code review、接手同事做了一半的烂摊子、一直延期的跨团队依赖。看他怎么分配功劳和责任，以及有没有落成具体机制（一份文档、一个接口约定、一个周会），而不是只说「多沟通」。",
+        "learning": "问最近一次被期限逼着学的东西：期限多久、怎么从零做到能上线、第一版哪里想错了。看方法（怎么选资料、怎么动手验证自己真懂了）和有没有迁移到别的地方。不是让他报课程清单。",
+        "motivation": "问简历上每一次转换：为什么走、当时在追求什么、什么情况下会留下。再问未来两年想要什么、这个岗位怎么对得上。看回答和简历时间线对不对得上、具不具体。放到任何一家公司都成立的套话就是弱答案。",
+        "leadership": "问没有职权时怎么推动事情：跨团队推一个技术决策、带一个卡住的同事、端到端扛下一个结果、做一个不受欢迎的决定。看别人是否真的因此改变了做法，以及结果不好时他认不认。"
+      },
+      "descriptionLabel": "考察重点",
+      "descriptionHint": "这段话会原样用于生成这一类题目，写得越具体，题目越准",
+      "descriptionPlaceholder": "描述这个维度要考察什么、该怎么问",
+      "editDescription": "编辑考察重点",
+      "customDescriptionRequired": "自定义维度需要填写考察重点",
+      "perDimension": "{count} 题",
+      "atLeastOne": "至少选择一个考察维度",
+      "duplicate": "维度名称不能重复",
+      "stress": "抗压能力",
+      "logic": "逻辑思维",
+      "communication": "沟通表达",
+      "professional": "专业技能",
+      "teamwork": "团队协作",
+      "learning": "学习能力",
+      "motivation": "稳定性与动机",
+      "leadership": "领导力"
+      ,"go_fundamentals": "Go 基础"
+      ,"backend_fundamentals": "后端基础"
+      ,"middleware_database": "中间件与数据库"
+      ,"project_deep_dive": "项目深挖"
+      ,"system_scenario": "系统场景"
+      ,"communication_pressure": "沟通与压力"
+      ,"hr_motivation": "求职动机"
+    },
+      "addFlow": {
+        "createTitle": "添加候选人",
+        "resumeLabel": "简历",
+        "stepCreate": "创建候选人",
+        "stepResume": "解析简历",
+        "stepQuestions": "生成面试题",
+        "submit": "创建并生成面试题",
+        "retry": "从失败步骤重试",
+        "needResumeFirst": "先上传简历文件或粘贴简历文本",
+        "reupload": "重传简历",
+        "reuploadSubmit": "保存并重新出题"
+      },
+    "candidates": {
+      "title": "候选人",
+      "add": "添加候选人",
+      "name": "姓名",
+      "namePlaceholder": "候选人姓名",
+      "search": "搜索候选人",
+      "empty": "还没有候选人",
+      "status": "状态",
+      "score": "总分",
+      "recommendation": "结论",
+      "notEvaluated": "未评价",
+      "delete": "删除候选人",
+      "deleteConfirm": "删除后该候选人的题目和评价都会消失，确定吗？"
+    },
+    "status": {
+      "pending": "待准备",
+      "questions_ready": "题目已生成",
+      "evaluated": "已评价"
+    },
+    "recommendation": {
+      "strong_hire": "强烈推荐",
+      "hire": "推荐录用",
+      "hold": "待定",
+      "no_hire": "不推荐"
+    },
+    "tabs": {
+      "resume": "简历",
+      "questions": "面试题",
+      "evaluation": "评价"
+    },
+    "resume": {
+      "upload": "上传简历文件",
+      "uploadHint": "支持 PDF、PNG、JPG、WebP，最大 10MB",
+      "parsing": "正在解析简历…",
+      "paste": "或直接粘贴简历文本",
+      "pastePlaceholder": "粘贴候选人简历内容",
+      "savePaste": "保存简历文本",
+      "saved": "已保存",
+      "empty": "还没有简历，上传文件或粘贴文本",
+      "parsed": "已解析的简历"
+    },
+    "questions": {
+      "generate": "生成面试题",
+      "regenerate": "重新生成",
+      "generating": "正在生成面试题…",
+      "needResume": "请先上传或粘贴候选人简历",
+      "empty": "还没有生成面试题",
+      "copyAll": "复制全部题目",
+      "copied": "已复制到剪贴板",
+      "answer": "候选人回答",
+      "answerPlaceholder": "边问边记，不用整理",
+      "recorded": "{done}/{total} 已记录",
+      "recordedWithSkipped": "{done}/{total} 已记录 · {skipped} 题跳过",
+      "saving": "保存中…",
+      "saved": "已保存",
+      "saveRetry": "保存失败，点击重试",
+      "selectOne": "从左侧选择一道题",
+      "summary": "共 {count} 题 · 预计 {minutes} 分钟",
+      "expandAll": "全部展开",
+      "collapseAll": "全部收起",
+      "asked": "已问",
+      "remove": "删除此题",
+      "intent": "考察点",
+      "rubric": "评分标准",
+      "excellent": "优秀",
+      "pass": "合格",
+      "fail": "不合格",
+      "followUps": "追问建议",
+      "showAnswers": "参考答案",
+      "hideAnswers": "收起答案",
+      "referenceAnswer": "参考答案",
+      "redFlags": "危险信号",
+      "referencePoints": "参考答案要点",
+      "categories": {
+        "go_fundamentals": "Go 基础",
+        "backend_fundamentals": "后端基础",
+        "middleware_database": "中间件与数据库",
+        "project_deep_dive": "项目深挖",
+        "system_scenario": "系统场景",
+        "communication_pressure": "沟通与压力",
+        "hr_motivation": "求职动机"
+      },
+      "minutes": "{count} 分钟",
+      "regenerateConfirm": "重新生成会覆盖现有全部题目，确定吗？"
+    },
+    "evaluation": {
+      "transcript": "面试记录",
+      "transcriptPlaceholder": "把整场面试的问答记录粘贴到这里，AI 会自动对应到各道题目并打分",
+      "transcriptHint": "不需要逐题整理，速记或完整记录都可以",
+      "transcriptSupplement": "逐题已记录 {done} 题，这里补充未逐题记录的部分",
+      "transcriptCollapsed": "面试记录（{chars} 字）· 展开编辑",
+      "generate": "生成评价",
+      "regenerate": "重新生成评价",
+      "generating": "正在分析面试记录…",
+      "needQuestions": "请先生成面试题",
+      "needTranscript": "请先粘贴面试记录",
+      "empty": "还没有评价",
+      "overallScore": "综合得分",
+      "answeredCount": "{answered}/{total} 题作答",
+      "dimensionScores": "维度得分",
+      "questionReview": "逐题点评",
+      "answerSummary": "回答摘要",
+      "notAnswered": "本题未作答",
+      "highlights": "亮点",
+      "weaknesses": "不足",
+      "strengths": "优势",
+      "concerns": "不足",
+      "overallComment": "综合反馈",
+      "overallCommentHint": "结合具体回答说明候选人的技术能力、问题解决、沟通协作、JD 匹配度、风险与录用建议",
+      "recommendationReason": "结论理由",
+      "regenerateConfirm": "重新评价会覆盖现有评价，确定吗？"
+    },
+    "errors": {
+      "loadFailed": "加载失败",
+      "saveFailed": "保存失败",
+      "generateFailed": "生成失败，请检查 AI 配置后重试",
+      "parseFailed": "简历解析失败，请换一份文件或改用粘贴文本"
+    }
+  },
+  "desktopUpdate": {
+    "found": "发现新版本 v{version}",
+    "download": "立即下载",
+    "downloading": "下载中 {percent}%",
+    "downloaded": "下载完成，打开安装包覆盖安装即可，本机数据不受影响。",
+    "openInstaller": "打开安装包",
+    "reveal": "在文件夹中显示",
+    "openReleasePage": "打开发布页",
+    "skipVersion": "不再提示这个版本",
+    "failed": "下载失败：{message}",
+    "collapse": "收起",
+    "expand": "展开",
+    "close": "关闭"
   }
 }

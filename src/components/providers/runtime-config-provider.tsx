@@ -6,13 +6,17 @@ import type { AIProvider } from '@/lib/ai/shared';
 
 interface RuntimeConfig {
   authEnabled: boolean;
+
   githubRepo: string;
   siteUrl: string;
   aiServerConfigured: boolean;
   aiServerProvider: AIProvider;
   aiServerBaseURL: string;
   aiServerModel: string;
+
+  desktop: boolean;
 }
+
 
 const DEFAULT_GITHUB_REPO = 'LessUp/JadeAI';
 const DEFAULT_SITE_URL = 'https://lessup.github.io/JadeAI';
@@ -25,26 +29,33 @@ const RuntimeConfigContext = createContext<RuntimeConfig>({
   aiServerProvider: 'openai',
   aiServerBaseURL: 'https://api.openai.com/v1',
   aiServerModel: 'gpt-4o',
+  desktop: false,
 });
 
 export function RuntimeConfigProvider({
   children,
   authEnabled,
+
   githubRepo,
   siteUrl,
   aiServerConfigured,
   aiServerProvider,
   aiServerBaseURL,
   aiServerModel,
+
+  desktop,
 }: {
   children: React.ReactNode;
   authEnabled: boolean;
+
   githubRepo: string;
   siteUrl: string;
   aiServerConfigured: boolean;
   aiServerProvider: AIProvider;
   aiServerBaseURL: string;
   aiServerModel: string;
+
+  desktop: boolean;
 }) {
   const setServerAIConfig = useSettingsStore((s) => s.setServerAIConfig);
 
@@ -58,6 +69,7 @@ export function RuntimeConfigProvider({
   }, [aiServerConfigured, aiServerProvider, aiServerBaseURL, aiServerModel, setServerAIConfig]);
 
   return (
+
     <RuntimeConfigContext.Provider
       value={{
         authEnabled,
@@ -67,6 +79,7 @@ export function RuntimeConfigProvider({
         aiServerProvider,
         aiServerBaseURL,
         aiServerModel,
+        desktop,
       }}
     >
       {children}

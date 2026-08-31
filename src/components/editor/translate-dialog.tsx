@@ -108,6 +108,8 @@ export function TranslateDialog({ open, onOpenChange, resumeId }: TranslateDialo
     abortRef.current = controller;
 
     try {
+      // 服务端按 resumeId 回库读简历，先把未保存的改动落库，否则翻的是上一版
+      await useResumeStore.getState().flushSave();
       if (mode === 'overwrite') {
         await saveCurrentResumeVersion('checkpoint');
       }

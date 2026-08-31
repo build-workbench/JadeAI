@@ -20,6 +20,7 @@ export type CurrentUserContext = {
   identity: CurrentUserIdentity;
 };
 
+
 export async function getCurrentUserId(): Promise<string | null> {
   if (config.auth.enabled) {
     const session = await auth();
@@ -72,6 +73,18 @@ export async function resolveCurrentUser(options: {
 } = {}): Promise<CurrentUserContext | null> {
   // Ensure DB tables exist before any query
   await dbReady;
+
+  // Desktop: one machine, one user. The x-fingerprint header that ~20 client
+  // call sites still send is deliberately ignored here rather than removed
+  // from each of them.
+  if (config.runtime.desktop) {
+    const user = await userRepository.ensureLocalUser();
+    if (!user) return null;
+    return {
+      user,
+      identity: { type: 'fingerprint', source: 'header', fingerprint: 'local' } as const,
+    };
+  }
 
   if (config.auth.enabled) {
     return resolveAuthenticatedUser();
