@@ -12,11 +12,19 @@ import {
 const SPARTICUZ_CHROMIUM_PACK_URL =
   'https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.x64.tar';
 const LOCAL_CHROME_CANDIDATES = [
+  process.env.PROGRAMFILES ? `${process.env.PROGRAMFILES}\\Google\\Chrome\\Application\\chrome.exe` : null,
+  process.env['PROGRAMFILES(X86)'] ? `${process.env['PROGRAMFILES(X86)']}\\Google\\Chrome\\Application\\chrome.exe` : null,
+  process.env.LOCALAPPDATA ? `${process.env.LOCALAPPDATA}\\Google\\Chrome\\Application\\chrome.exe` : null,
+  process.env.PROGRAMFILES ? `${process.env.PROGRAMFILES}\\Microsoft\\Edge\\Application\\msedge.exe` : null,
+  process.env['PROGRAMFILES(X86)'] ? `${process.env['PROGRAMFILES(X86)']}\\Microsoft\\Edge\\Application\\msedge.exe` : null,
+  process.env.LOCALAPPDATA ? `${process.env.LOCALAPPDATA}\\Microsoft\\Edge\\Application\\msedge.exe` : null,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium-browser',
   '/usr/bin/chromium',
-] as const;
+  '/usr/bin/chromium-browser-unstable',
+  '/snap/bin/chromium',
+].filter((path): path is string => Boolean(path));
 let hasWarnedAboutBundledChromiumFallback = false;
 
 type ChromiumEnv = Partial<Record<'ALLOW_CHROMIUM_DOWNLOAD' | 'CHROME_PATH' | 'VERCEL', string | undefined>>;
