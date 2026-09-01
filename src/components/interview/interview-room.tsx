@@ -48,13 +48,15 @@ export function InterviewRoom({ sessionId, initialMessages }: InterviewRoomProps
   // Load initial messages from DB on first render
   const loadedInitialRoundRef = useRef<string | null>(null);
   const sentInitRef = useRef<string | null>(null);
+  const initialMessagesLoadedRef = useRef(false);
+  // initialMessages is the history for the round the session was resumed on — it
+  // must be injected exactly once on mount. Re-running it whenever currentRound.id
+  // changes (continue / switch) would clobber the new round's messages with the
+  // old round's history (including a stale [ROUND_COMPLETE] marker).
   useEffect(() => {
-      if (
-        initialMessages &&
-        initialMessages.length > 0 &&
-        currentRound?.id &&
-        loadedInitialRoundRef.current !== currentRound.id
-      ) {
+      if (initialMessagesLoadedRef.current) return;
+      if (initialMessages && initialMessages.length > 0 && currentRound?.id) {
+        initialMessagesLoadedRef.current = true;
         loadedInitialRoundRef.current = currentRound.id;
         sentInitRef.current = currentRound.id;
         setMessages(initialMessages);
