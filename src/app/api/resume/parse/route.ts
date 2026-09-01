@@ -212,7 +212,7 @@ function buildSections(parsed: ParsedResume, language: string) {
           id: crypto.randomUUID(),
           language: l.language,
           proficiency: l.proficiency,
-          ...(l.description ? { description: l.description } : {}),
+          description: l.description || '',
         })),
       },
     });

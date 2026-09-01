@@ -193,6 +193,9 @@ export const recruitRepository = {
   },
 
   async deleteCandidate(candidateId: string) {
+    // Delete the evaluation explicitly too — PG deployments lack the SQLite
+    // onDelete: cascade FK, so a candidate delete would leave orphan rows.
+    await db.delete(recruitEvaluations).where(eq(recruitEvaluations.candidateId, candidateId));
     await db.delete(recruitCandidates).where(eq(recruitCandidates.id, candidateId));
   },
 

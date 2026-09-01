@@ -69,7 +69,11 @@ export function JobFormDialog({ open, onOpenChange, job, onSaved }: JobFormDialo
     try {
       const response = await fetch('/api/recruit/dimensions/suggest', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', ...getAIHeaders() },
+        headers: {
+          'content-type': 'application/json',
+          ...(fingerprint ? { 'x-fingerprint': fingerprint } : {}),
+          ...getAIHeaders(),
+        },
         body: JSON.stringify({ title, jobDescription }),
       });
       if (!response.ok) throw new Error('suggest failed');
