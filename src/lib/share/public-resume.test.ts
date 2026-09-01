@@ -1,7 +1,6 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
 import { serializePublicResume } from './public-resume';
 import { DEFAULT_THEME } from '@/lib/resume-theme/default-theme';
+import { test, expect } from 'vitest';
 
 test('serializePublicResume exposes only the public resume shape', () => {
   const serialized = serializePublicResume({
@@ -37,7 +36,7 @@ test('serializePublicResume exposes only the public resume shape', () => {
     ],
   } as any);
 
-  assert.deepEqual(serialized, {
+  expect(serialized).toEqual({
     id: 'resume-1',
     title: 'Public Resume',
     template: 'classic',
@@ -57,21 +56,18 @@ test('serializePublicResume exposes only the public resume shape', () => {
 });
 
 test('serializePublicResume defaults missing sections to an empty list', () => {
-  assert.deepEqual(
-    serializePublicResume({
+  expect(serializePublicResume({
       id: 'resume-1',
       title: 'Public Resume',
       template: 'classic',
       themeConfig: DEFAULT_THEME,
       language: 'en',
-    }),
-    {
+    })).toEqual({
       id: 'resume-1',
       title: 'Public Resume',
       template: 'classic',
       themeConfig: DEFAULT_THEME,
       language: 'en',
       sections: [],
-    },
-  );
+    });
 });

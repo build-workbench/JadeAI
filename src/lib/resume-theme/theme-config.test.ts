@@ -1,10 +1,9 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import { CHINESE_RESUME_FONT_STACK } from '@/lib/font-stacks';
 import { buildThemeCss } from './build-theme-css';
 import { DEFAULT_THEME } from './default-theme';
 import { mergeThemeConfig, normalizeFontStack } from './theme-config';
+import { test, expect } from 'vitest';
 
 test('normalizes theme colors, numbers, and font stacks', () => {
   const theme = mergeThemeConfig({
@@ -17,36 +16,30 @@ test('normalizes theme colors, numbers, and font stacks', () => {
     sectionSpacing: 100,
   });
 
-  assert.equal(theme.primaryColor, '#aabbcc');
-  assert.equal(theme.accentColor, DEFAULT_THEME.accentColor);
-  assert.equal(theme.fontFamily, CHINESE_RESUME_FONT_STACK);
-  assert.equal(theme.fontSize, DEFAULT_THEME.fontSize);
-  assert.equal(theme.lineSpacing, DEFAULT_THEME.lineSpacing);
-  assert.deepEqual(theme.margin, { top: 0, right: 60, bottom: 20, left: 12 });
-  assert.equal(theme.sectionSpacing, 64);
+  expect(theme.primaryColor).toBe('#aabbcc');
+  expect(theme.accentColor).toBe(DEFAULT_THEME.accentColor);
+  expect(theme.fontFamily).toBe(CHINESE_RESUME_FONT_STACK);
+  expect(theme.fontSize).toBe(DEFAULT_THEME.fontSize);
+  expect(theme.lineSpacing).toBe(DEFAULT_THEME.lineSpacing);
+  expect(theme.margin).toEqual({ top: 0, right: 60, bottom: 20, left: 12 });
+  expect(theme.sectionSpacing).toBe(64);
 });
 
 test('rejects font stacks that can break out of CSS declarations', () => {
   const fallback = normalizeFontStack(DEFAULT_THEME.fontFamily);
 
-  assert.equal(normalizeFontStack('Inter; color:red'), fallback);
-  assert.equal(normalizeFontStack('Inter, url(https://example.com/font.woff2)'), 'Inter');
-  assert.equal(normalizeFontStack('Inter /* comment */'), fallback);
-  assert.equal(normalizeFontStack('Inter } body { display:none'), fallback);
+  expect(normalizeFontStack('Inter; color:red')).toBe(fallback);
+  expect(normalizeFontStack('Inter, url(https://example.com/font.woff2)')).toBe('Inter');
+  expect(normalizeFontStack('Inter /* comment */')).toBe(fallback);
+  expect(normalizeFontStack('Inter } body { display:none')).toBe(fallback);
 });
 
 test('normalizes font stacks token-by-token and keeps valid families', () => {
   const fallback = normalizeFontStack(DEFAULT_THEME.fontFamily);
 
-  assert.equal(
-    normalizeFontStack('"Inter", "Noto Sans SC", sans-serif'),
-    'Inter, "Noto Sans SC", sans-serif',
-  );
-  assert.equal(
-    normalizeFontStack('sans-serif, "Noto Sans SC", "Inter", url(https://bad.font)'),
-    'sans-serif, "Noto Sans SC", Inter',
-  );
-  assert.equal(normalizeFontStack('url(https://bad.font), ;;;'), fallback);
+  expect(normalizeFontStack('"Inter", "Noto Sans SC", sans-serif')).toBe('Inter, "Noto Sans SC", sans-serif');
+  expect(normalizeFontStack('sans-serif, "Noto Sans SC", "Inter", url(https://bad.font)')).toBe('sans-serif, "Noto Sans SC", Inter');
+  expect(normalizeFontStack('url(https://bad.font), ;;;')).toBe(fallback);
 });
 
 test('buildThemeCss only emits normalized theme values', () => {
@@ -64,11 +57,11 @@ test('buildThemeCss only emits normalized theme values', () => {
     },
   });
 
-  assert.match(css, /color: #1a1a1a !important/);
-  assert.match(css, /border-color: #ddeeff !important/);
-  assert.doesNotMatch(css, /color:red/);
-  assert.match(css, /font-family: Inter, "Noto Sans SC", sans-serif !important/);
-  assert.match(css, /padding-top: 0px !important/);
-  assert.match(css, /padding-right: 60px !important/);
-  assert.match(css, /--base-section-spacing: 64px/);
+  expect(css).toMatch(/color: #1a1a1a !important/);
+  expect(css).toMatch(/border-color: #ddeeff !important/);
+  expect(css).not.toMatch(/color:red/);
+  expect(css).toMatch(/font-family: Inter, "Noto Sans SC", sans-serif !important/);
+  expect(css).toMatch(/padding-top: 0px !important/);
+  expect(css).toMatch(/padding-right: 60px !important/);
+  expect(css).toMatch(/--base-section-spacing: 64px/);
 });

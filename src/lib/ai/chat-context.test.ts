@@ -1,10 +1,9 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import type { UIMessage } from 'ai';
 
 import { buildChatContextMessages } from './chat-context';
 import { EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT } from './chat-response-status';
 import { dbMessagesToUIMessages } from './utils';
+import { test, it, expect } from 'vitest';
 
 function createConversation(pattern: string): UIMessage[] {
   const messages: UIMessage[] = [];
@@ -53,7 +52,7 @@ test('chat context truncation does not start with a tool result', async () => {
 
   const modelMessages = await buildChatContextMessages(messages);
 
-  assert.notEqual(modelMessages[0]?.role, 'tool');
+  expect(modelMessages[0]?.role).not.toBe('tool');
 
   for (let index = 0; index < modelMessages.length; index += 1) {
     const message = modelMessages[index];
@@ -61,7 +60,7 @@ test('chat context truncation does not start with a tool result', async () => {
 
     const previous = modelMessages[index - 1];
     if (!previous || previous.role !== 'assistant' || typeof previous.content === 'string') {
-      assert.fail('tool result should stay paired with the preceding assistant tool call');
+      expect.fail('tool result should stay paired with the preceding assistant tool call');
     }
 
     const previousToolCallIds = new Set(
@@ -73,7 +72,7 @@ test('chat context truncation does not start with a tool result', async () => {
 
     for (const part of message.content) {
       if (part.type !== 'tool-result') continue;
-      assert.ok(previousToolCallIds.has(part.toolCallId));
+      expect(previousToolCallIds.has(part.toolCallId)).toBeTruthy();
     }
   }
 });
@@ -120,12 +119,12 @@ test('resumed history keeps tool calls and trailing text in separate assistant s
     if (message?.role !== 'assistant' || typeof message.content === 'string') continue;
 
     const types = message.content.map((part) => part.type);
-    assert.ok(!(types.includes('tool-call') && types.includes('text')));
+    expect(!(types.includes('tool-call') && types.includes('text'))).toBeTruthy();
 
     if (!types.includes('tool-call')) continue;
 
     const nextMessage = modelMessages[index + 1];
-    assert.equal(nextMessage?.role, 'tool');
+    expect(nextMessage?.role).toBe('tool');
   }
 });
 
@@ -163,16 +162,13 @@ test('legacy orderedParts history regains missing step boundaries', async () => 
   ]);
 
   const assistantMessage = resumedMessages[1];
-  assert.deepEqual(
-    assistantMessage?.parts.map((part) => part.type),
-    ['step-start', 'tool-updateSection', 'step-start', 'text']
-  );
+  expect(assistantMessage?.parts.map((part) => part.type)).toEqual(['step-start', 'tool-updateSection', 'step-start', 'text']);
 
   const modelMessages = await buildChatContextMessages(resumedMessages);
 
-  assert.equal(modelMessages[1]?.role, 'assistant');
-  assert.equal(modelMessages[2]?.role, 'tool');
-  assert.equal(modelMessages[3]?.role, 'assistant');
+  expect(modelMessages[1]?.role).toBe('assistant');
+  expect(modelMessages[2]?.role).toBe('tool');
+  expect(modelMessages[3]?.role).toBe('assistant');
 });
 
 test('legacy orderedParts with repeated tool steps stay provider-valid', async () => {
@@ -215,18 +211,15 @@ test('legacy orderedParts with repeated tool steps stay provider-valid', async (
   ]);
 
   const assistantMessage = resumedMessages[1];
-  assert.deepEqual(
-    assistantMessage?.parts.map((part) => part.type),
-    ['step-start', 'tool-updateSection', 'step-start', 'tool-updateSection', 'step-start', 'text']
-  );
+  expect(assistantMessage?.parts.map((part) => part.type)).toEqual(['step-start', 'tool-updateSection', 'step-start', 'tool-updateSection', 'step-start', 'text']);
 
   const modelMessages = await buildChatContextMessages(resumedMessages);
 
-  assert.equal(modelMessages[1]?.role, 'assistant');
-  assert.equal(modelMessages[2]?.role, 'tool');
-  assert.equal(modelMessages[3]?.role, 'assistant');
-  assert.equal(modelMessages[4]?.role, 'tool');
-  assert.equal(modelMessages[5]?.role, 'assistant');
+  expect(modelMessages[1]?.role).toBe('assistant');
+  expect(modelMessages[2]?.role).toBe('tool');
+  expect(modelMessages[3]?.role).toBe('assistant');
+  expect(modelMessages[4]?.role).toBe('tool');
+  expect(modelMessages[5]?.role).toBe('assistant');
 });
 
 test('legacy toolCalls history uses documented old tool format', async () => {
@@ -255,17 +248,14 @@ test('legacy toolCalls history uses documented old tool format', async () => {
   ]);
 
   const assistantMessage = resumedMessages[1];
-  assert.deepEqual(
-    assistantMessage?.parts.map((part) => part.type),
-    ['step-start', 'tool-updateSection', 'step-start', 'text']
-  );
-  assert.deepEqual((assistantMessage?.parts[1] as { output?: unknown }).output, { applied: false });
+  expect(assistantMessage?.parts.map((part) => part.type)).toEqual(['step-start', 'tool-updateSection', 'step-start', 'text']);
+  expect((assistantMessage?.parts[1] as { output?: unknown }).output).toEqual({ applied: false });
 
   const modelMessages = await buildChatContextMessages(resumedMessages);
 
-  assert.equal(modelMessages[1]?.role, 'assistant');
-  assert.equal(modelMessages[2]?.role, 'tool');
-  assert.equal(modelMessages[3]?.role, 'assistant');
+  expect(modelMessages[1]?.role).toBe('assistant');
+  expect(modelMessages[2]?.role).toBe('tool');
+  expect(modelMessages[3]?.role).toBe('assistant');
 });
 
 test('resumed history preserves tool error state instead of fabricating success', () => {
@@ -301,11 +291,11 @@ test('resumed history preserves tool error state instead of fabricating success'
     output?: unknown;
   };
 
-  assert.equal(assistantMessage.metadata?.status, 'error');
-  assert.equal(assistantMessage.metadata?.errorText, 'Tool request timed out');
-  assert.equal(toolPart.state, 'output-error');
-  assert.equal(toolPart.errorText, 'Tool request timed out');
-  assert.equal(toolPart.output, undefined);
+  expect(assistantMessage.metadata?.status).toBe('error');
+  expect(assistantMessage.metadata?.errorText).toBe('Tool request timed out');
+  expect(toolPart.state).toBe('output-error');
+  expect(toolPart.errorText).toBe('Tool request timed out');
+  expect(toolPart.output).toBe(undefined);
 });
 
 test('chat context excludes failed tool outputs from retry context', async () => {
@@ -346,10 +336,7 @@ test('chat context excludes failed tool outputs from retry context', async () =>
 
   const modelMessages = await buildChatContextMessages(resumedMessages);
 
-  assert.deepEqual(
-    modelMessages.map((message) => message.role),
-    ['user', 'user']
-  );
+  expect(modelMessages.map((message) => message.role)).toEqual(['user', 'user']);
 });
 
 test('resumed pending assistant metadata survives even without text parts', () => {
@@ -371,9 +358,9 @@ test('resumed pending assistant metadata survives even without text parts', () =
     metadata?: { status?: string; startedAt?: number };
   };
 
-  assert.equal(assistantMessage.metadata?.status, 'submitted');
-  assert.equal(assistantMessage.metadata?.startedAt, 1234567890);
-  assert.deepEqual(assistantMessage.parts, []);
+  expect(assistantMessage.metadata?.status).toBe('submitted');
+  expect(assistantMessage.metadata?.startedAt).toBe(1234567890);
+  expect(assistantMessage.parts).toEqual([]);
 });
 
 test('resumed history drops legacy empty-response placeholders from display/context', () => {
@@ -398,10 +385,7 @@ test('resumed history drops legacy empty-response placeholders from display/cont
     },
   ]);
 
-  assert.deepEqual(
-    resumedMessages.map((message) => message.id),
-    ['user-1']
-  );
+  expect(resumedMessages.map((message) => message.id)).toEqual(['user-1']);
 });
 
 test('resumed history keeps empty-response errors when assistant still has renderable output', () => {
@@ -419,9 +403,9 @@ test('resumed history keeps empty-response errors when assistant still has rende
     },
   ]);
 
-  assert.equal(resumedMessages.length, 1);
-  assert.equal(resumedMessages[0]?.id, 'assistant-1');
-  assert.ok(resumedMessages[0]?.parts.some((part) => part.type === 'text'));
+  expect(resumedMessages.length).toBe(1);
+  expect(resumedMessages[0]?.id).toBe('assistant-1');
+  expect(resumedMessages[0]?.parts.some((part) => part.type === 'text')).toBeTruthy();
 });
 
 test('chat context drops assistant messages that only contain empty text parts', async () => {
@@ -445,8 +429,5 @@ test('chat context drops assistant messages that only contain empty text parts',
 
   const modelMessages = await buildChatContextMessages(messages);
 
-  assert.deepEqual(
-    modelMessages.map((message) => message.role),
-    ['user', 'user']
-  );
+  expect(modelMessages.map((message) => message.role)).toEqual(['user', 'user']);
 });

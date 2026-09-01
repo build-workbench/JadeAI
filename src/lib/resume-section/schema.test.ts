@@ -1,35 +1,30 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import { isResumeSectionType, normalizeResumeSectionContent, safeNormalizeResumeSectionContent } from './schema';
+import { test, expect } from 'vitest';
 
 test('recognizes supported resume section types', () => {
-  assert.equal(isResumeSectionType('work_experience'), true);
-  assert.equal(isResumeSectionType('qr_codes'), true);
-  assert.equal(isResumeSectionType('unknown_section'), false);
+  expect(isResumeSectionType('work_experience')).toBe(true);
+  expect(isResumeSectionType('qr_codes')).toBe(true);
+  expect(isResumeSectionType('unknown_section')).toBe(false);
 });
 
 test('normalizes supported section content and rejects invalid payloads', () => {
-  assert.deepEqual(
-    normalizeResumeSectionContent('summary', { text: 'hello' }),
-    { text: 'hello' },
-  );
+  expect(normalizeResumeSectionContent('summary', { text: 'hello' })).toEqual({ text: 'hello' });
 
-  assert.throws(
-    () => normalizeResumeSectionContent('summary', { items: [] }),
-  );
+  expect(
+    () => normalizeResumeSectionContent('summary', { items: [] }),).toThrow();
 });
 
 test('passes through unsupported section types without throwing', () => {
   const raw = { custom: true, payload: [1, 2, 3] };
-  assert.equal(normalizeResumeSectionContent('unknown_section', raw), raw);
+  expect(normalizeResumeSectionContent('unknown_section', raw)).toBe(raw);
 });
 
 test('safeNormalizeResumeSectionContent falls back to empty content on malformed input', () => {
   // Null/primitive content that used to corrupt resumes and crash exports.
-  assert.deepEqual(safeNormalizeResumeSectionContent('work_experience', null), { items: [] });
-  assert.deepEqual(safeNormalizeResumeSectionContent('summary', 'a string'), { text: '' });
-  assert.deepEqual(safeNormalizeResumeSectionContent('skills', 42), { categories: [] });
+  expect(safeNormalizeResumeSectionContent('work_experience', null)).toEqual({ items: [] });
+  expect(safeNormalizeResumeSectionContent('summary', 'a string')).toEqual({ text: '' });
+  expect(safeNormalizeResumeSectionContent('skills', 42)).toEqual({ categories: [] });
 });
 
 test('safeNormalizeResumeSectionContent assigns stable ids to imported items', () => {
@@ -39,7 +34,7 @@ test('safeNormalizeResumeSectionContent assigns stable ids to imported items', (
     ],
   }) as { items: { id: string; company: string }[] };
 
-  assert.equal(normalized.items.length, 1);
-  assert.equal(typeof normalized.items[0].id, 'string');
-  assert.ok(normalized.items[0].id.length > 0);
+  expect(normalized.items.length).toBe(1);
+  expect(typeof normalized.items[0].id).toBe('string');
+  expect(normalized.items[0].id.length > 0).toBeTruthy();
 });

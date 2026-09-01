@@ -1,6 +1,4 @@
-import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import test from 'node:test';
 
 import { generatePdfHtml } from '@/app/api/resume/[id]/export/builders';
 import { type ResumeWithSections } from '@/app/api/resume/[id]/export/utils';
@@ -9,6 +7,7 @@ import {
   getPdfRegressionFixture,
   type PdfRegressionFixtureName,
 } from './__fixtures__/resume-fixtures';
+import { describe, expect, it, test } from 'vitest';
 
 const TEST_FONT_BASE_URL = 'http://jadeai.test';
 
@@ -147,7 +146,7 @@ function digestHtml(html: string): string {
 }
 
 function assertHtmlIncludes(html: string, expected: string, message: string): void {
-  assert.ok(html.includes(expected), `${message}\nMissing snippet: ${expected}`);
+  expect(html.includes(expected)).toBeTruthy();
 }
 
 function asExportResume(resume: ReturnType<typeof getPdfRegressionFixture>): ResumeWithSections {
@@ -160,16 +159,13 @@ test('PDF export HTML emits absolute font URLs when a font base URL is provided'
 
   const html = await generatePdfHtml(asExportResume(resume), TEST_FONT_BASE_URL);
 
-  assert.match(
-    html,
-    new RegExp(`${TEST_FONT_BASE_URL}/fonts/custom/resource-han-rounded-cn/ResourceHanRoundedCN-Regular\\.ttf`),
-  );
-  assert.match(html, /"Resource Han Rounded CN", "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif/);
+  expect(html).toMatch(new RegExp(`${TEST_FONT_BASE_URL}/fonts/custom/resource-han-rounded-cn/ResourceHanRoundedCN-Regular\\.ttf`),);
+  expect(html).toMatch(/"Resource Han Rounded CN", "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif/);
 });
 
-test('PDF export HTML is deterministic for representative long-content templates', async (t) => {
+describe('PDF export HTML is deterministic for representative long-content templates', () => {
   for (const regressionCase of HTML_REGRESSION_CASES) {
-    await t.test(regressionCase.fixtureName, async () => {
+    it(regressionCase.fixtureName, async () => {
       const resume = getPdfRegressionFixture(regressionCase.fixtureName);
       const beforeExport = structuredClone(resume);
       const html = await generatePdfHtml(asExportResume(resume), TEST_FONT_BASE_URL);
@@ -178,10 +174,10 @@ test('PDF export HTML is deterministic for representative long-content templates
         TEST_FONT_BASE_URL,
       );
 
-      assert.deepEqual(resume, beforeExport, 'HTML export should not mutate fixture data');
-      assert.equal(secondHtml, html, 'fresh fixture exports should be byte-for-byte stable');
-      assert.equal(html.length, regressionCase.expectedLength);
-      assert.equal(digestHtml(html), regressionCase.expectedSha256);
+      expect(resume).toEqual(beforeExport);
+      expect(secondHtml).toBe(html);
+      expect(html.length).toBe(regressionCase.expectedLength);
+      expect(digestHtml(html)).toBe(regressionCase.expectedSha256);
 
       for (const [attribute, value] of Object.entries(regressionCase.dataAttributes)) {
         assertHtmlIncludes(

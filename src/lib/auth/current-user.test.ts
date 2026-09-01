@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import {
   ANONYMOUS_SESSION_COOKIE,
@@ -9,6 +7,7 @@ import {
   normalizeFingerprint,
   verifyAnonymousSessionCookieValue,
 } from './current-user';
+import { test, expect } from 'vitest';
 
 const SECRET = 'test-secret-for-anonymous-session-binding';
 
@@ -17,20 +16,20 @@ function requestWith(headers: Record<string, string>) {
 }
 
 test('fingerprint normalization preserves existing safe identifiers', () => {
-  assert.equal(normalizeFingerprint(' demo-fingerprint '), 'demo-fingerprint');
-  assert.equal(normalizeFingerprint('7f7f9f8a9b8c7d6e5f4a'), '7f7f9f8a9b8c7d6e5f4a');
-  assert.equal(normalizeFingerprint('550e8400-e29b-41d4-a716-446655440000'), '550e8400-e29b-41d4-a716-446655440000');
+  expect(normalizeFingerprint(' demo-fingerprint ')).toBe('demo-fingerprint');
+  expect(normalizeFingerprint('7f7f9f8a9b8c7d6e5f4a')).toBe('7f7f9f8a9b8c7d6e5f4a');
+  expect(normalizeFingerprint('550e8400-e29b-41d4-a716-446655440000')).toBe('550e8400-e29b-41d4-a716-446655440000');
 });
 
 test('fingerprint normalization rejects missing blank and garbage boundaries', () => {
-  assert.equal(normalizeFingerprint(undefined), null);
-  assert.equal(normalizeFingerprint(null), null);
-  assert.equal(normalizeFingerprint(''), null);
-  assert.equal(normalizeFingerprint('   '), null);
-  assert.equal(normalizeFingerprint('short'), null);
-  assert.equal(normalizeFingerprint('visitor id with spaces'), null);
-  assert.equal(normalizeFingerprint('{"visitorId":"client-garbage"}'), null);
-  assert.equal(normalizeFingerprint('a'.repeat(129)), null);
+  expect(normalizeFingerprint(undefined)).toBe(null);
+  expect(normalizeFingerprint(null)).toBe(null);
+  expect(normalizeFingerprint('')).toBe(null);
+  expect(normalizeFingerprint('   ')).toBe(null);
+  expect(normalizeFingerprint('short')).toBe(null);
+  expect(normalizeFingerprint('visitor id with spaces')).toBe(null);
+  expect(normalizeFingerprint('{"visitorId":"client-garbage"}')).toBe(null);
+  expect(normalizeFingerprint('a'.repeat(129))).toBe(null);
 });
 
 test('signed anonymous session cookie round-trips normalized fingerprint', () => {
@@ -39,8 +38,8 @@ test('signed anonymous session cookie round-trips normalized fingerprint', () =>
     issuedAt: 1,
   });
 
-  assert.ok(cookieValue);
-  assert.equal(verifyAnonymousSessionCookieValue(cookieValue, SECRET), 'demo-fingerprint');
+  expect(cookieValue).toBeTruthy();
+  expect(verifyAnonymousSessionCookieValue(cookieValue, SECRET)).toBe('demo-fingerprint');
 });
 
 test('signed anonymous session cookie rejects tampering and wrong secrets', () => {
@@ -49,9 +48,9 @@ test('signed anonymous session cookie rejects tampering and wrong secrets', () =
     issuedAt: 1,
   });
 
-  assert.ok(cookieValue);
-  assert.equal(verifyAnonymousSessionCookieValue(`${cookieValue}tampered`, SECRET), null);
-  assert.equal(verifyAnonymousSessionCookieValue(cookieValue, 'different-secret'), null);
+  expect(cookieValue).toBeTruthy();
+  expect(verifyAnonymousSessionCookieValue(`${cookieValue}tampered`, SECRET)).toBe(null);
+  expect(verifyAnonymousSessionCookieValue(cookieValue, 'different-secret')).toBe(null);
 });
 
 test('current user seam resolves identity from signed cookie when present', () => {
@@ -59,7 +58,7 @@ test('current user seam resolves identity from signed cookie when present', () =
     secret: SECRET,
     issuedAt: 1,
   });
-  assert.ok(cookieValue);
+  expect(cookieValue).toBeTruthy();
 
   const identity = getFingerprintIdentityFromRequest(
     requestWith({
@@ -68,7 +67,7 @@ test('current user seam resolves identity from signed cookie when present', () =
     { secret: SECRET }
   );
 
-  assert.deepEqual(identity, {
+  expect(identity).toEqual({
     type: 'fingerprint',
     source: 'cookie',
     fingerprint: 'trusted-fingerprint',
@@ -80,7 +79,7 @@ test('current user seam rejects mismatched header when a signed session cookie e
     secret: SECRET,
     issuedAt: 1,
   });
-  assert.ok(cookieValue);
+  expect(cookieValue).toBeTruthy();
 
   const identity = getFingerprintIdentityFromRequest(
     requestWith({
@@ -90,7 +89,7 @@ test('current user seam rejects mismatched header when a signed session cookie e
     { secret: SECRET }
   );
 
-  assert.equal(identity, null);
+  expect(identity).toBe(null);
 });
 
 test('current user seam keeps x-fingerprint fallback when cookie is missing or invalid', () => {
@@ -102,7 +101,7 @@ test('current user seam keeps x-fingerprint fallback when cookie is missing or i
     { secret: SECRET }
   );
 
-  assert.deepEqual(identity, {
+  expect(identity).toEqual({
     type: 'fingerprint',
     source: 'header',
     fingerprint: 'fallback-fingerprint',
@@ -116,7 +115,7 @@ test('anonymous cookie binding is only created when a signing secret is availabl
   try {
     delete process.env.AUTH_SECRET;
     delete process.env.NEXTAUTH_SECRET;
-    assert.equal(createAnonymousSessionCookie('demo-fingerprint'), null);
+    expect(createAnonymousSessionCookie('demo-fingerprint')).toBe(null);
   } finally {
     if (originalAuthSecret === undefined) {
       delete process.env.AUTH_SECRET;
@@ -135,9 +134,9 @@ test('anonymous cookie binding is only created when a signing secret is availabl
     secure: true,
   });
 
-  assert.ok(cookie);
-  assert.equal(cookie.name, ANONYMOUS_SESSION_COOKIE);
-  assert.equal(cookie.options.httpOnly, true);
-  assert.equal(cookie.options.sameSite, 'lax');
-  assert.equal(cookie.options.secure, true);
+  if (!cookie) throw new Error('expected a cookie');
+  expect(cookie.name).toBe(ANONYMOUS_SESSION_COOKIE);
+  expect(cookie.options.httpOnly).toBe(true);
+  expect(cookie.options.sameSite).toBe('lax');
+  expect(cookie.options.secure).toBe(true);
 });

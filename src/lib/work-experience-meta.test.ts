@@ -1,16 +1,15 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import {
   formatWorkExperienceOrganization,
   normalizeWorkExperienceMetadataForDisplay,
 } from './work-experience-meta';
+import { test, expect } from 'vitest';
 
 test('formats work organization text from team and company', () => {
-  assert.equal(formatWorkExperienceOrganization({ team: 'AI专项组', company: '华大基因' }), 'AI专项组 | 华大基因');
-  assert.equal(formatWorkExperienceOrganization({ team: 'AI专项组', company: '' }), 'AI专项组');
-  assert.equal(formatWorkExperienceOrganization({ team: '', company: '华大基因' }), '华大基因');
-  assert.equal(formatWorkExperienceOrganization({ team: 'AI专项组', company: 'AI专项组 | 华大基因' }), 'AI专项组 | 华大基因');
+  expect(formatWorkExperienceOrganization({ team: 'AI专项组', company: '华大基因' })).toBe('AI专项组 | 华大基因');
+  expect(formatWorkExperienceOrganization({ team: 'AI专项组', company: '' })).toBe('AI专项组');
+  expect(formatWorkExperienceOrganization({ team: '', company: '华大基因' })).toBe('华大基因');
+  expect(formatWorkExperienceOrganization({ team: 'AI专项组', company: 'AI专项组 | 华大基因' })).toBe('AI专项组 | 华大基因');
 });
 
 test('normalizes work experience company for preview/export display', () => {
@@ -46,9 +45,9 @@ test('normalizes work experience company for preview/export display', () => {
 
   const normalized = normalizeWorkExperienceMetadataForDisplay(resume);
 
-  assert.equal(normalized.sections[1].content.items[0].company, 'AI专项组 | 华大基因');
-  assert.equal(normalized.sections[1].content.items[0].team, 'AI专项组');
-  assert.equal(resume.sections[1].content.items[0].company, '华大基因');
+  expect(normalized.sections[1].content.items[0].company).toBe('AI专项组 | 华大基因');
+  expect(normalized.sections[1].content.items[0].team).toBe('AI专项组');
+  expect(resume.sections[1].content.items[0].company).toBe('华大基因');
 });
 
 test('returns original resume when no work metadata change is needed', () => {
@@ -71,5 +70,5 @@ test('returns original resume when no work metadata change is needed', () => {
 
   const normalized = normalizeWorkExperienceMetadataForDisplay(resume);
 
-  assert.equal(normalized, resume);
+  expect(normalized).toBe(resume);
 });

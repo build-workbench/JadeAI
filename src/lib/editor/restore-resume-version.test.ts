@@ -1,8 +1,7 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
 import type { ResumeDraftSnapshot } from '@/types/editor';
 import type { Resume } from '@/types/resume';
 import { DEFAULT_THEME } from '@/lib/resume-theme/default-theme';
+import { test, expect } from 'vitest';
 
 function makeDraft(title: string): ResumeDraftSnapshot {
   return {
@@ -60,8 +59,8 @@ test('restores a different snapshot and persists it after verification', async (
     },
   });
 
-  assert.deepEqual(calls, ['backup', 'apply', 'persist']);
-  assert.equal(result.status, 'restored');
+  expect(calls).toEqual(['backup', 'apply', 'persist']);
+  expect(result.status).toBe('restored');
 });
 
 test('returns noop when restoring the already-current snapshot', async () => {
@@ -83,14 +82,14 @@ test('returns noop when restoring the already-current snapshot', async () => {
     },
   });
 
-  assert.deepEqual(result, { status: 'noop', reason: 'already-current' });
-  assert.equal(persisted, false);
+  expect(result).toEqual({ status: 'noop', reason: 'already-current' });
+  expect(persisted).toBe(false);
 });
 
 test('throws when apply completes but current draft still does not match target', async () => {
   const { executeResumeRestore } = await import('./restore-resume-version');
   const currentDraft = makeDraft('before');
-  await assert.rejects(
+  await expect(
     () =>
       executeResumeRestore({
         readCurrentDraft: async () => currentDraft,
@@ -98,9 +97,7 @@ test('throws when apply completes but current draft still does not match target'
         saveBackupVersion: async () => {},
         applyTargetDraft: async () => {},
         persistRestoredDraft: async () => {},
-      }),
-    /restore verification failed/i,
-  );
+      })).rejects.toThrow(/restore verification failed/i);
 });
 
 test('restoreResumeVersionById wires store callbacks into the restore transaction', async () => {
@@ -134,8 +131,8 @@ test('restoreResumeVersionById wires store callbacks into the restore transactio
       applyTargetDraft,
       persistRestoredDraft,
     }) => {
-      assert.deepEqual(await readCurrentDraft(), makeDraft('current'));
-      assert.deepEqual(resolvedTargetDraft, targetDraft);
+      expect(await readCurrentDraft()).toEqual(makeDraft('current'));
+      expect(resolvedTargetDraft).toEqual(targetDraft);
 
       await saveBackupVersion();
       await applyTargetDraft(targetDraft);
@@ -154,8 +151,8 @@ test('restoreResumeVersionById wires store callbacks into the restore transactio
     getResumeStoreState: () => resumeStoreState,
   });
 
-  assert.deepEqual(backupCalls, ['restore']);
-  assert.deepEqual(applyCalls, [
+  expect(backupCalls).toEqual(['restore']);
+  expect(applyCalls).toEqual([
     {
       draft: targetDraft,
       options: {
@@ -165,14 +162,14 @@ test('restoreResumeVersionById wires store callbacks into the restore transactio
       },
     },
   ]);
-  assert.deepEqual(saveCalls, [{ source: 'restore', forceVersion: true }]);
-  assert.deepEqual(result, { status: 'restored' });
+  expect(saveCalls).toEqual([{ source: 'restore', forceVersion: true }]);
+  expect(result).toEqual({ status: 'restored' });
 });
 
 test('restoreResumeVersionById throws when the target version no longer exists', async () => {
   const { restoreResumeVersionById } = await import('./resume-history-actions');
 
-  await assert.rejects(
+  await expect(
     () =>
       restoreResumeVersionById('missing-version', {
         getResumeVersion: async () => null,
@@ -185,9 +182,7 @@ test('restoreResumeVersionById throws when the target version no longer exists',
           currentResume: makeResume('current'),
           save: async () => {},
         }),
-      }),
-    /version not found/i,
-  );
+      })).rejects.toThrow(/version not found/i);
 });
 
 test('restoreResumeVersionRecord restores from loaded snapshot without reloading by id', async () => {
@@ -225,8 +220,8 @@ test('restoreResumeVersionRecord restores from loaded snapshot without reloading
         applyTargetDraft,
         persistRestoredDraft,
       }) => {
-        assert.deepEqual(await readCurrentDraft(), makeDraft('current'));
-        assert.deepEqual(resolvedTargetDraft, targetDraft);
+        expect(await readCurrentDraft()).toEqual(makeDraft('current'));
+        expect(resolvedTargetDraft).toEqual(targetDraft);
 
         await saveBackupVersion();
         await applyTargetDraft(targetDraft);
@@ -246,8 +241,8 @@ test('restoreResumeVersionRecord restores from loaded snapshot without reloading
     }
   );
 
-  assert.deepEqual(backupCalls, ['restore']);
-  assert.deepEqual(applyCalls, [
+  expect(backupCalls).toEqual(['restore']);
+  expect(applyCalls).toEqual([
     {
       draft: targetDraft,
       options: {
@@ -257,6 +252,6 @@ test('restoreResumeVersionRecord restores from loaded snapshot without reloading
       },
     },
   ]);
-  assert.deepEqual(saveCalls, [{ source: 'restore', forceVersion: true }]);
-  assert.deepEqual(result, { status: 'restored' });
+  expect(saveCalls).toEqual([{ source: 'restore', forceVersion: true }]);
+  expect(result).toEqual({ status: 'restored' });
 });

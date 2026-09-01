@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
 import { setTimeout as wait } from 'node:timers/promises';
-import test from 'node:test';
 import { AI_PROVIDER_DEFAULTS } from '@/lib/ai/shared';
 import { getAIHeaders, useSettingsStore } from './settings-store';
+import { test, expect, afterEach } from 'vitest';
 
 const openaiDefaults = AI_PROVIDER_DEFAULTS.openai;
 const anthropicDefaults = AI_PROVIDER_DEFAULTS.anthropic;
@@ -38,7 +37,7 @@ test('getAIHeaders uses server provider, base URL, and model when no local key i
     serverAIModel: 'server-model',
   });
 
-  assert.deepEqual(getAIHeaders(), {
+  expect(getAIHeaders()).toEqual({
     'x-provider': 'openai',
     'x-base-url': 'https://server.example/v1',
     'x-model': 'server-model',
@@ -57,7 +56,7 @@ test('getAIHeaders switches to the configured server provider when local setting
     serverAIModel: 'claude-server',
   });
 
-  assert.deepEqual(getAIHeaders(), {
+  expect(getAIHeaders()).toEqual({
     'x-provider': 'anthropic',
     'x-base-url': anthropicDefaults.baseURL,
     'x-model': 'claude-server',
@@ -76,7 +75,7 @@ test('getAIHeaders preserves local provider settings when a local key exists', (
     serverAIModel: 'claude-server',
   });
 
-  assert.deepEqual(getAIHeaders(), {
+  expect(getAIHeaders()).toEqual({
     'x-provider': 'openai',
     'x-api-key': 'local-key',
     'x-base-url': 'https://local.example/v1',
@@ -98,14 +97,14 @@ test('clearing a local key reconciles visible AI settings back to server default
 
   useSettingsStore.getState().setAIApiKey('');
 
-  assert.equal(useSettingsStore.getState().aiProvider, 'anthropic');
-  assert.equal(useSettingsStore.getState().aiBaseURL, anthropicDefaults.baseURL);
-  assert.equal(useSettingsStore.getState().aiModel, 'claude-server');
+  expect(useSettingsStore.getState().aiProvider).toBe('anthropic');
+  expect(useSettingsStore.getState().aiBaseURL).toBe(anthropicDefaults.baseURL);
+  expect(useSettingsStore.getState().aiModel).toBe('claude-server');
 });
 
-test('hydrate surfaces settings load failures', async (t) => {
+test('hydrate surfaces settings load failures', async () => {
   const originalFetch = globalThis.fetch;
-  t.after(() => {
+  afterEach(() => {
     globalThis.fetch = originalFetch;
     resetSettings();
   });
@@ -116,13 +115,13 @@ test('hydrate surfaces settings load failures', async (t) => {
   await useSettingsStore.getState().hydrate();
 
   const state = useSettingsStore.getState();
-  assert.equal(state._hydrated, true);
-  assert.equal(state.settingsSyncError, 'settings service unavailable');
+  expect(state._hydrated).toBe(true);
+  expect(state.settingsSyncError).toBe('settings service unavailable');
 });
 
-test('debounced settings sync surfaces save failures', async (t) => {
+test('debounced settings sync surfaces save failures', async () => {
   const originalFetch = globalThis.fetch;
-  t.after(() => {
+  afterEach(() => {
     globalThis.fetch = originalFetch;
     resetSettings();
   });
@@ -133,5 +132,5 @@ test('debounced settings sync surfaces save failures', async (t) => {
   useSettingsStore.getState().setAIModel('new-model');
   await wait(550);
 
-  assert.equal(useSettingsStore.getState().settingsSyncError, 'settings save failed');
+  expect(useSettingsStore.getState().settingsSyncError).toBe('settings save failed');
 });

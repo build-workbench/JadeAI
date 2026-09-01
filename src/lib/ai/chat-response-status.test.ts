@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import type { AIChatUIMessage } from '@/types/ai';
 import {
   EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT,
@@ -10,16 +8,17 @@ import {
   resolveAssistantTerminalOutcome,
   shouldSurfaceEmptyAssistantResponseError,
 } from './chat-response-status';
+import { test, expect } from 'vitest';
 
 test('hasRenderableSerializedAssistantOutput treats non-empty text as renderable', () => {
-  assert.equal(hasRenderableSerializedAssistantOutput({
+  expect(hasRenderableSerializedAssistantOutput({
     content: '优化后的简历内容',
     orderedParts: [{ type: 'text', text: '优化后的简历内容' }],
-  }), true);
+  })).toBe(true);
 });
 
 test('hasRenderableSerializedAssistantOutput treats tool-only responses as renderable', () => {
-  assert.equal(hasRenderableSerializedAssistantOutput({
+  expect(hasRenderableSerializedAssistantOutput({
     content: '',
     orderedParts: [{
       type: 'tool',
@@ -28,7 +27,7 @@ test('hasRenderableSerializedAssistantOutput treats tool-only responses as rende
       args: { section: 'experience' },
       result: { ok: true },
     }],
-  }), true);
+  })).toBe(true);
 });
 
 test('resolveAssistantTerminalOutcome marks empty terminal responses as stream errors', () => {
@@ -43,9 +42,9 @@ test('resolveAssistantTerminalOutcome marks empty terminal responses as stream e
     classifiedErrorKind: undefined,
   });
 
-  assert.equal(outcome.status, 'error');
-  assert.equal(outcome.errorKind, 'stream');
-  assert.equal(outcome.errorText, EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT);
+  expect(outcome.status).toBe('error');
+  expect(outcome.errorKind).toBe('stream');
+  expect(outcome.errorText).toBe(EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT);
 });
 
 test('resolveAssistantTerminalOutcome keeps classified errors', () => {
@@ -61,73 +60,73 @@ test('resolveAssistantTerminalOutcome keeps classified errors', () => {
     classifiedErrorKind: 'provider',
   });
 
-  assert.equal(outcome.status, 'error');
-  assert.equal(outcome.errorKind, 'provider');
-  assert.equal(outcome.errorText, 'Provider timeout');
+  expect(outcome.status).toBe('error');
+  expect(outcome.errorKind).toBe('provider');
+  expect(outcome.errorText).toBe('Provider timeout');
 });
 
 test('isEmptyAssistantResponseErrorText matches only the canonical error text', () => {
-  assert.equal(isEmptyAssistantResponseErrorText(EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT), true);
-  assert.equal(isEmptyAssistantResponseErrorText('provider timeout'), false);
-  assert.equal(isEmptyAssistantResponseErrorText(undefined), false);
+  expect(isEmptyAssistantResponseErrorText(EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT)).toBe(true);
+  expect(isEmptyAssistantResponseErrorText('provider timeout')).toBe(false);
+  expect(isEmptyAssistantResponseErrorText(undefined)).toBe(false);
 });
 
 test('shouldSurfaceEmptyAssistantResponseError requires explicit session-scoped terminal state', () => {
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: undefined,
     terminalSessionId: undefined,
     requestStatus: 'ready',
     terminalStatus: undefined,
     hasRenderableAssistantReply: false,
-  }), false);
+  })).toBe(false);
 
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: 'session-a',
     terminalSessionId: undefined,
     requestStatus: 'ready',
     terminalStatus: undefined,
     hasRenderableAssistantReply: false,
-  }), false);
+  })).toBe(false);
 
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: 'session-a',
     terminalSessionId: 'session-b',
     requestStatus: 'ready',
     terminalStatus: undefined,
     hasRenderableAssistantReply: false,
-  }), false);
+  })).toBe(false);
 
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: 'session-a',
     terminalSessionId: 'session-a',
     requestStatus: 'streaming',
     terminalStatus: undefined,
     hasRenderableAssistantReply: false,
-  }), false);
+  })).toBe(false);
 
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: 'session-a',
     terminalSessionId: 'session-a',
     requestStatus: 'ready',
     terminalStatus: 'error',
     hasRenderableAssistantReply: false,
-  }), false);
+  })).toBe(false);
 
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: 'session-a',
     terminalSessionId: 'session-a',
     requestStatus: 'ready',
     terminalStatus: undefined,
     hasRenderableAssistantReply: true,
-  }), false);
+  })).toBe(false);
 
-  assert.equal(shouldSurfaceEmptyAssistantResponseError({
+  expect(shouldSurfaceEmptyAssistantResponseError({
     sessionId: 'session-a',
     terminalSessionId: 'session-a',
     requestStatus: 'ready',
     terminalStatus: undefined,
     hasRenderableAssistantReply: false,
-  }), true);
+  })).toBe(true);
 });
 
 test('hasRenderableUIAssistantMessage detects renderable assistant parts', () => {
@@ -151,8 +150,8 @@ test('hasRenderableUIAssistantMessage detects renderable assistant parts', () =>
     parts: [{ type: 'text', text: '   ' }],
   } as AIChatUIMessage;
 
-  assert.equal(hasRenderableUIAssistantMessage(toolOnlyMessage), true);
-  assert.equal(hasRenderableUIAssistantMessage(emptyTextMessage), false);
+  expect(hasRenderableUIAssistantMessage(toolOnlyMessage)).toBe(true);
+  expect(hasRenderableUIAssistantMessage(emptyTextMessage)).toBe(false);
 });
 
 test('hasRenderableAssistantReplySinceRequest treats same-id empty-to-renderable transition as new reply', () => {
@@ -162,14 +161,11 @@ test('hasRenderableAssistantReplySinceRequest treats same-id empty-to-renderable
     parts: [{ type: 'text', text: '已重新生成完整回复' }],
   } as AIChatUIMessage;
 
-  assert.equal(
-    hasRenderableAssistantReplySinceRequest(
+  expect(hasRenderableAssistantReplySinceRequest(
       latestAssistantMessage,
       'assistant-1',
       false
-    ),
-    true
-  );
+    )).toBe(true);
 });
 
 test('hasRenderableAssistantReplySinceRequest rejects unchanged renderable baseline', () => {
@@ -179,12 +175,9 @@ test('hasRenderableAssistantReplySinceRequest rejects unchanged renderable basel
     parts: [{ type: 'text', text: '原始回复' }],
   } as AIChatUIMessage;
 
-  assert.equal(
-    hasRenderableAssistantReplySinceRequest(
+  expect(hasRenderableAssistantReplySinceRequest(
       latestAssistantMessage,
       'assistant-2',
       true
-    ),
-    false
-  );
+    )).toBe(false);
 });

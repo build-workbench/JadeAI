@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { db } from '../index';
 import { recruitJobs, recruitCandidates, recruitEvaluations } from '../schema';
 import type { CandidateStatRow } from '@/lib/recruit/job-stats';
@@ -93,6 +93,12 @@ export const recruitRepository = {
   },
 
   async deleteJob(jobId: string) {
+    // Delete children explicitly so PG deployments (which lack the SQLite
+    // onDelete: cascade FKs) don't leave orphaned candidates/evaluations.
+    await db.delete(recruitEvaluations).where(
+      inArray(recruitEvaluations.candidateId, db.select({ candidateId: recruitCandidates.id }).from(recruitCandidates).where(eq(recruitCandidates.jobId, jobId)))
+    );
+    await db.delete(recruitCandidates).where(eq(recruitCandidates.jobId, jobId));
     await db.delete(recruitJobs).where(eq(recruitJobs.id, jobId));
   },
 

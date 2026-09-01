@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import { dbInterviewMessagesToUIMessages, getInterviewRole } from './ui-message-adapter';
+import { test, expect } from 'vitest';
 
 test('preserves original interview roles when adapting database messages', () => {
   const [interviewer, candidate, system] = dbInterviewMessagesToUIMessages([
@@ -10,15 +9,15 @@ test('preserves original interview roles when adapting database messages', () =>
     { id: 'm3', role: 'system', content: 'Trigger', metadata: { skipped: true } },
   ]);
 
-  assert.equal(interviewer.role, 'assistant');
-  assert.equal(getInterviewRole(interviewer), 'interviewer');
-  assert.deepEqual(interviewer.metadata?.interviewMetadata, { marked: true });
+  expect(interviewer.role).toBe('assistant');
+  expect(getInterviewRole(interviewer)).toBe('interviewer');
+  expect(interviewer.metadata?.interviewMetadata).toEqual({ marked: true });
 
-  assert.equal(candidate.role, 'user');
-  assert.equal(getInterviewRole(candidate), 'candidate');
-  assert.deepEqual(candidate.metadata?.interviewMetadata, { hinted: true });
+  expect(candidate.role).toBe('user');
+  expect(getInterviewRole(candidate)).toBe('candidate');
+  expect(candidate.metadata?.interviewMetadata).toEqual({ hinted: true });
 
-  assert.equal(system.role, 'system');
-  assert.equal(getInterviewRole(system), 'system');
-  assert.deepEqual(system.metadata?.interviewMetadata, { skipped: true });
+  expect(system.role).toBe('system');
+  expect(getInterviewRole(system)).toBe('system');
+  expect(system.metadata?.interviewMetadata).toEqual({ skipped: true });
 });

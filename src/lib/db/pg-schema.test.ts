@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import test from 'node:test';
+import { test, expect } from 'vitest';
 
 const pgSchemaSource = readFileSync(resolve(process.cwd(), 'src/lib/db/pg-schema.ts'), 'utf8');
 
@@ -14,11 +13,11 @@ test('PostgreSQL schema preserves repository-owned cascade relationships', () =>
   ];
 
   for (const reference of cascadeReferences) {
-    assert.ok(pgSchemaSource.includes(reference), `Missing cascade reference: ${reference}`);
+    expect(pgSchemaSource.includes(reference)).toBeTruthy();
   }
 });
 
 test('PostgreSQL schema preserves non-cascade owner relationships', () => {
-  assert.ok(pgSchemaSource.includes("userId: text('user_id').notNull().references(() => users.id)"));
-  assert.ok(pgSchemaSource.includes("resumeId: text('resume_id').references(() => resumes.id)"));
+  expect(pgSchemaSource.includes("userId: text('user_id').notNull().references(() => users.id)")).toBeTruthy();
+  expect(pgSchemaSource.includes("resumeId: text('resume_id').references(() => resumes.id)")).toBeTruthy();
 });

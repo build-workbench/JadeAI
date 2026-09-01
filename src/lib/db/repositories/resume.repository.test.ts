@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
-import test, { after } from 'node:test';
 
 import { DEFAULT_THEME } from '@/lib/resume-theme/default-theme';
+import { test, expect, afterAll } from 'vitest';
 
 const testDbPath = './data/resume-repository-theme.test.db';
 const generatedDbFiles = [testDbPath, `${testDbPath}-wal`, `${testDbPath}-shm`];
@@ -16,7 +15,7 @@ process.env.SQLITE_PATH = testDbPath;
 
 let closeDatabase: (() => Promise<void>) | undefined;
 
-after(async () => {
+afterAll(async () => {
   await closeDatabase?.();
   for (const file of generatedDbFiles) {
     rmSync(file, { force: true });
@@ -52,8 +51,8 @@ test('create persists normalized themeConfig from the POST repository path', asy
     },
   });
 
-  assert.ok(resume);
-  assert.deepEqual(resume.themeConfig, {
+  expect(resume).toBeTruthy();
+  expect(resume.themeConfig).toEqual({
     ...DEFAULT_THEME,
     primaryColor: '#aabbcc',
     accentColor: DEFAULT_THEME.accentColor,
@@ -88,7 +87,7 @@ test('replaceDraftForUser keeps resume metadata and sections unchanged when any 
     template: 'classic',
     language: 'en',
   });
-  assert.ok(resume);
+  expect(resume).toBeTruthy();
 
   const sectionAId = crypto.randomUUID();
   const sectionBId = crypto.randomUUID();
@@ -112,7 +111,7 @@ test('replaceDraftForUser keeps resume metadata and sections unchanged when any 
   });
 
   const duplicateSectionId = crypto.randomUUID();
-  await assert.rejects(
+  await expect(
     resumeRepository.replaceDraftForUser({
       id: resume.id,
       userId,
@@ -143,20 +142,19 @@ test('replaceDraftForUser keeps resume metadata and sections unchanged when any 
           content: { items: [] },
         },
       ],
-    }),
-  );
+    }),).rejects.toThrow();
 
   const after = await resumeRepository.findById(resume.id);
-  assert.ok(after);
-  assert.equal(after.title, 'Before rollback');
+  expect(after).toBeTruthy();
+  expect(after.title).toBe('Before rollback');
 
   const summarySection = after.sections.find((section: any) => section.id === sectionAId);
   const skillsSection = after.sections.find((section: any) => section.id === sectionBId);
-  assert.ok(summarySection);
-  assert.ok(skillsSection);
-  assert.equal(after.sections.length, 2);
-  assert.deepEqual(summarySection.content, { text: 'before-summary' });
-  assert.deepEqual(skillsSection.content, {
+  expect(summarySection).toBeTruthy();
+  expect(skillsSection).toBeTruthy();
+  expect(after.sections.length).toBe(2);
+  expect(summarySection.content).toEqual({ text: 'before-summary' });
+  expect(skillsSection.content).toEqual({
     categories: [
       {
         id: (skillsSection.content as any).categories[0].id,

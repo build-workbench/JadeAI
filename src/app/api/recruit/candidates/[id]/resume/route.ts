@@ -4,6 +4,7 @@ import { parseResumeFile, validateResumeFile } from '@/lib/ai/parse-resume';
 import { recruitRepository } from '@/lib/db/repositories/recruit.repository';
 import { requireOwnedCandidate } from '@/lib/recruit/access';
 import type { ParsedResume } from '@/lib/ai/parse-schema';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
 /**
  * 把结构化简历压成一段文本，供后续两次 AI 调用当上下文用。
@@ -41,6 +42,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     const access = await requireOwnedCandidate(request, id);
     if ('error' in access) return access.error;
+    const rate = checkRateLimit(`recruit-resume:${access.user.id}`, { limit: 10, windowMs: 60_000 });
+    if (!rate.allowed) return rateLimitResponse(rate.retryAfterSeconds);
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

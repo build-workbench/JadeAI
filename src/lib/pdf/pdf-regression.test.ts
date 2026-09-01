@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test, { type TestContext } from 'node:test';
 
 import { generatePdfHtml } from '@/app/api/resume/[id]/export/builders';
 import { generatePdf, resolveBrowserLaunchPlan } from '@/lib/pdf/generate-pdf';
@@ -10,6 +8,7 @@ import {
   getPdfRegressionFixture,
   type PdfRegressionFixtureName,
 } from './__fixtures__/resume-fixtures';
+import { describe, expect, it } from 'vitest';
 
 interface PdfArtifact {
   pageCount: number;
@@ -37,15 +36,14 @@ function getPdfRendererSkipReason(): string | undefined {
 }
 
 function testWithPdfRenderer(
-  t: TestContext,
   name: string,
   fn: () => Promise<void>,
-): Promise<void> {
+): void {
   if (PDF_RENDERER_SKIP_REASON) {
-    return t.test(name, { skip: PDF_RENDERER_SKIP_REASON }, fn);
+    it(name, { skip: Boolean(PDF_RENDERER_SKIP_REASON) }, fn);
+    return;
   }
-
-  return t.test(name, fn);
+  it(name, fn);
 }
 
 async function renderPdfArtifact(
@@ -90,20 +88,17 @@ async function renderPdfArtifact(
   return pending;
 }
 
-test('pdf regression suite', async (t) => {
-  await testWithPdfRenderer(t, 'fitOnePage compresses modern long content onto a single page', async () => {
+describe('pdf regression suite', () => {
+  testWithPdfRenderer('fitOnePage compresses modern long content onto a single page', async () => {
     const defaultArtifact = await renderPdfArtifact('modern-long-content');
     const fitArtifact = await renderPdfArtifact('modern-long-content', { fitOnePage: true });
 
-    assert.ok(
-      defaultArtifact.pageCount > 1,
-      `Expected modern-long-content baseline to overflow, got ${defaultArtifact.pageCount} page(s)`,
-    );
-    assert.equal(fitArtifact.pageCount, 1);
-    assert.match(fitArtifact.text, /Modern Fit Marker Project/);
+    expect(defaultArtifact.pageCount > 1).toBeTruthy();
+    expect(fitArtifact.pageCount).toBe(1);
+    expect(fitArtifact.text).toMatch(/Modern Fit Marker Project/);
   });
 
-  await testWithPdfRenderer(t, 'fitOnePage emits pagination telemetry', async () => {
+  testWithPdfRenderer('fitOnePage emits pagination telemetry', async () => {
     const resume = getPdfRegressionFixture('modern-long-content');
     const html = await generatePdfHtml(resume as any, TEST_FONT_BASE_URL);
     let paginationResult: PaginationStrategyResult | undefined;
@@ -115,77 +110,67 @@ test('pdf regression suite', async (t) => {
       },
     });
 
-    assert.equal(paginationResult?.mode, 'fit-one-page');
-    assert.equal(paginationResult?.success, true);
-    assert.ok((paginationResult?.iterations ?? 0) > 0);
-    assert.ok((paginationResult?.usableHeight ?? 0) > 0);
+    expect(paginationResult?.mode).toBe('fit-one-page');
+    expect(paginationResult?.success).toBe(true);
+    expect((paginationResult?.iterations ?? 0) > 0).toBeTruthy();
+    expect((paginationResult?.usableHeight ?? 0) > 0).toBeTruthy();
   });
 
-  await testWithPdfRenderer(t, 'sidebar layout avoids a near-blank trailing page', async () => {
+  testWithPdfRenderer('sidebar layout avoids a near-blank trailing page', async () => {
     const artifact = await renderPdfArtifact('sidebar-long-content');
-    assert.match(artifact.text, /Edge Rollout Program Marker/);
+    expect(artifact.text).toMatch(/Edge Rollout Program Marker/);
 
     if (artifact.pageCount > 1) {
-      assert.match(
-        artifact.pages.at(-1) || '',
-        /Edge Rollout Program Marker/,
-        'expected the trailing page to contain real content instead of clone/sidebar artifacts',
-      );
+      expect(artifact.pages.at(-1) || '').toMatch(/Edge Rollout Program Marker/);
     }
   });
 
-  await testWithPdfRenderer(t, 'swiss layout no longer defers the marker role to the next page', async () => {
+  testWithPdfRenderer('swiss layout no longer defers the marker role to the next page', async () => {
     const artifact = await renderPdfArtifact('swiss-page-gap');
-    assert.ok(artifact.pageCount >= 3);
-    assert.match(
-      artifact.pages[0] || '',
-      /全栈工程师/,
-      'expected the marker role to begin before the page break instead of leaving a large trailing gap',
-    );
+    expect(artifact.pageCount >= 3).toBeTruthy();
+    expect(artifact.pages[0] || '').toMatch(/全栈工程师/);
   });
 
-  await t.test('swiss export widens section headers for page-top fragments', async () => {
+  testWithPdfRenderer('swiss export widens section headers for page-top fragments', async () => {
     const resume = getPdfRegressionFixture('swiss-page-gap');
     const html = await generatePdfHtml(resume as any, TEST_FONT_BASE_URL);
-    assert.match(html, /data-section-heading="wide"/);
-    assert.match(html, /margin-left:-10px;margin-right:-10px;padding-left:10px;padding-right:10px/);
+    expect(html).toMatch(/data-section-heading="wide"/);
+    expect(html).toMatch(/margin-left:-10px;margin-right:-10px;padding-left:10px;padding-right:10px/);
   });
 
-  await testWithPdfRenderer(t, 'gradient export reserves physical page safe margins', async () => {
+  testWithPdfRenderer('gradient export reserves physical page safe margins', async () => {
     const resume = getPdfRegressionFixture('gradient-page-margin');
     const html = await generatePdfHtml(resume as any, TEST_FONT_BASE_URL);
 
-    assert.match(html, /@page \{\s*size: A4;\s*margin: 10mm 0 10mm 0;/);
-    assert.match(html, new RegExp(`--pdf-page-margin-top: ${PDF_SAFE_PAGE_MARGIN_PX}px;`));
-    assert.match(html, new RegExp(`--pdf-page-margin-bottom: ${PDF_SAFE_PAGE_MARGIN_PX}px;`));
-    assert.match(html, /span\[class\*="rounded-full"\] \{ break-inside: avoid !important; \}/);
+    expect(html).toMatch(/@page \{\s*size: A4;\s*margin: 10mm 0 10mm 0;/);
+    expect(html).toMatch(new RegExp(`--pdf-page-margin-top: ${PDF_SAFE_PAGE_MARGIN_PX}px;`));
+    expect(html).toMatch(new RegExp(`--pdf-page-margin-bottom: ${PDF_SAFE_PAGE_MARGIN_PX}px;`));
+    expect(html).toMatch(/span\[class\*="rounded-full"\] \{ break-inside: avoid !important; \}/);
 
     const artifact = await renderPdfArtifact('gradient-page-margin');
-    assert.match(artifact.text, /后端 & 数据中间件/);
-    assert.match(artifact.text, /Gradient Page Safe Margin Marker/);
+    expect(artifact.text).toMatch(/后端 & 数据中间件/);
+    expect(artifact.text).toMatch(/Gradient Page Safe Margin Marker/);
 
-    assert.ok(
-      (artifact.paginationResult?.usableHeight ?? Number.POSITIVE_INFINITY) <=
-        1123 - PDF_SAFE_PAGE_MARGIN_PX * 2,
-    );
+    expect((artifact.paginationResult?.usableHeight ?? Number.POSITIVE_INFINITY) <=
+        1123 - PDF_SAFE_PAGE_MARGIN_PX * 2).toBeTruthy();
   });
 
-  await testWithPdfRenderer(t, 'two-column fixture keeps extractable semantic text', async () => {
+  testWithPdfRenderer('two-column fixture keeps extractable semantic text', async () => {
     const artifact = await renderPdfArtifact('two-column-balanced');
-    assert.ok(artifact.pageCount >= 1);
-    assert.match(artifact.text, /Systems Narrative Anchor/);
+    expect(artifact.pageCount >= 1).toBeTruthy();
+    expect(artifact.text).toMatch(/Systems Narrative Anchor/);
   });
 
-  await testWithPdfRenderer(t, 'compact fixture renders dense content without dropping anchors', async () => {
+  testWithPdfRenderer('compact fixture renders dense content without dropping anchors', async () => {
     const artifact = await renderPdfArtifact('compact-dense');
-    assert.ok(artifact.pageCount >= 1);
-    assert.match(artifact.text, /Compact Density Review Marker/);
+    expect(artifact.pageCount >= 1).toBeTruthy();
+    expect(artifact.text).toMatch(/Compact Density Review Marker/);
   });
 
-  await testWithPdfRenderer(t, 'neon dark fixture stays text-extractable', async () => {
+  testWithPdfRenderer('neon dark fixture stays text-extractable', async () => {
     const artifact = await renderPdfArtifact('neon-dark-background');
-    assert.ok(artifact.pageCount >= 1);
-    assert.match(artifact.text, /Neon Dark Mode Portfolio/);
-    assert.match(artifact.text, /多语言导出稳定性验证/);
+    expect(artifact.pageCount >= 1).toBeTruthy();
+    expect(artifact.text).toMatch(/Neon Dark Mode Portfolio/);
+    expect(artifact.text).toMatch(/多语言导出稳定性验证/);
   });
 });

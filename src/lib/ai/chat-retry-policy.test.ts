@@ -1,13 +1,12 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { isRetryableErrorKind } from './chat-retry-policy';
+import { test, expect } from 'vitest';
 
 test('isRetryableErrorKind includes empty-response stream errors', () => {
-  assert.equal(isRetryableErrorKind('stream'), true);
+  expect(isRetryableErrorKind('stream')).toBe(true);
 });
 
 test('isRetryableErrorKind excludes non-retryable error kinds', () => {
-  assert.equal(isRetryableErrorKind('tool'), false);
-  assert.equal(isRetryableErrorKind('client_abort'), false);
-  assert.equal(isRetryableErrorKind(undefined), false);
+  expect(isRetryableErrorKind('tool')).toBe(false);
+  expect(isRetryableErrorKind('client_abort')).toBe(false);
+  expect(isRetryableErrorKind(undefined)).toBe(false);
 });

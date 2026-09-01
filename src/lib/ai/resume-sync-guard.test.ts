@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import { ensureResumeSyncedBeforeAI, type ResumeSyncSnapshot } from './resume-sync-guard';
+import { test, expect } from 'vitest';
 
 test('returns immediately when no resume is loaded', async () => {
   let saveCallCount = 0;
@@ -16,7 +15,7 @@ test('returns immediately when no resume is loaded', async () => {
 
   await ensureResumeSyncedBeforeAI(() => snapshot, { timeoutMs: 50, pollIntervalMs: 1 });
 
-  assert.equal(saveCallCount, 0);
+  expect(saveCallCount).toBe(0);
 });
 
 test('triggers save when resume is dirty and not saving', async () => {
@@ -36,8 +35,8 @@ test('triggers save when resume is dirty and not saving', async () => {
 
   await ensureResumeSyncedBeforeAI(() => snapshot, { timeoutMs: 50, pollIntervalMs: 1 });
 
-  assert.equal(saveCallCount, 1);
-  assert.equal(snapshot.isDirty, false);
+  expect(saveCallCount).toBe(1);
+  expect(snapshot.isDirty).toBe(false);
 });
 
 test('waits for ongoing save to finish', async () => {
@@ -58,7 +57,7 @@ test('waits for ongoing save to finish', async () => {
 
   await ensureResumeSyncedBeforeAI(() => snapshot, { timeoutMs: 100, pollIntervalMs: 1 });
 
-  assert.equal(saveCallCount, 0);
+  expect(saveCallCount).toBe(0);
 });
 
 test('throws when syncing does not complete before timeout', async () => {
@@ -69,8 +68,6 @@ test('throws when syncing does not complete before timeout', async () => {
     save: async () => {},
   };
 
-  await assert.rejects(
-    () => ensureResumeSyncedBeforeAI(() => snapshot, { timeoutMs: 5, pollIntervalMs: 1 }),
-    /Timed out while syncing the latest resume before AI request/
-  );
+  await expect(
+    () => ensureResumeSyncedBeforeAI(() => snapshot, { timeoutMs: 5, pollIntervalMs: 1 })).rejects.toThrow(/Timed out while syncing the latest resume before AI request/);
 });

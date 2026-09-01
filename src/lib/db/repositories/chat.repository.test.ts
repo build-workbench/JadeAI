@@ -1,6 +1,5 @@
-import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
-import test, { after } from 'node:test';
+import { test, expect, afterAll } from 'vitest';
 
 const testDbPath = './data/chat-repository-pagination.test.db';
 const generatedDbFiles = [testDbPath, `${testDbPath}-wal`, `${testDbPath}-shm`];
@@ -15,7 +14,7 @@ process.env.SQLITE_PATH = testDbPath;
 let closeDatabase: (() => Promise<void>) | undefined;
 type PaginatedMessage = { id: string; role: 'user' | 'assistant' | 'system'; content: string };
 
-after(async () => {
+afterAll(async () => {
   await closeDatabase?.();
   for (const file of generatedDbFiles) {
     rmSync(file, { force: true });
@@ -80,7 +79,7 @@ test('findPaginatedMessages does not drop same-second messages across pages', as
     const page = await chatRepository.findPaginatedMessages(sessionId, { limit: 2, cursor });
     const pageMessages = page.messages as PaginatedMessage[];
     if (guard === 0) {
-      assert.ok(page.nextCursor?.includes('|'));
+      expect(page.nextCursor?.includes('|')).toBeTruthy();
     }
     collectedIds.push(...pageMessages.map((message) => message.id));
     collectedUserContents.push(
@@ -92,10 +91,10 @@ test('findPaginatedMessages does not drop same-second messages across pages', as
     guard += 1;
   } while (cursor && guard < 10);
 
-  assert.equal(guard, 3);
-  assert.equal(collectedIds.length, 6);
-  assert.deepEqual([...new Set(collectedIds)].sort(), ['msg-001', 'msg-002', 'msg-003', 'msg-004', 'msg-005', 'msg-006']);
-  assert.deepEqual([...new Set(collectedUserContents)].sort(), ['Q1', 'Q2', 'Q3']);
+  expect(guard).toBe(3);
+  expect(collectedIds.length).toBe(6);
+  expect([...new Set(collectedIds)].sort()).toEqual(['msg-001', 'msg-002', 'msg-003', 'msg-004', 'msg-005', 'msg-006']);
+  expect([...new Set(collectedUserContents)].sort()).toEqual(['Q1', 'Q2', 'Q3']);
 });
 
 test('findPaginatedMessages accepts legacy timestamp-only cursor', async () => {
@@ -120,6 +119,6 @@ test('findPaginatedMessages accepts legacy timestamp-only cursor', async () => {
     cursor: newerCreatedAt.toISOString(),
   });
 
-  assert.deepEqual((page.messages as PaginatedMessage[]).map((message) => message.id), ['legacy-001', 'legacy-002']);
-  assert.equal(page.hasMore, false);
+  expect((page.messages as PaginatedMessage[]).map((message) => message.id)).toEqual(['legacy-001', 'legacy-002']);
+  expect(page.hasMore).toBe(false);
 });

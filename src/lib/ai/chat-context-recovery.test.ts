@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import type { UIMessage } from 'ai';
 import { stripAssistantToolPartsForRecovery } from './chat-context-recovery';
+import { test, expect } from 'vitest';
 
 test('stripAssistantToolPartsForRecovery keeps assistant text but removes tool parts', () => {
   const messages: UIMessage[] = [
@@ -23,7 +22,7 @@ test('stripAssistantToolPartsForRecovery keeps assistant text but removes tool p
   ];
 
   const recovered = stripAssistantToolPartsForRecovery(messages);
-  assert.deepEqual(recovered[0]?.parts, [{ type: 'text', text: '已完成更新' }]);
+  expect(recovered[0]?.parts).toEqual([{ type: 'text', text: '已完成更新' }]);
 });
 
 test('stripAssistantToolPartsForRecovery leaves non-assistant messages unchanged', () => {
@@ -36,5 +35,5 @@ test('stripAssistantToolPartsForRecovery leaves non-assistant messages unchanged
   ];
 
   const recovered = stripAssistantToolPartsForRecovery(messages);
-  assert.deepEqual(recovered, messages);
+  expect(recovered).toEqual(messages);
 });

@@ -1,6 +1,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 // In-memory resume that the mocked repository reads/writes.
 const projectItem = { id: 'p1', name: 'Demo', description: 'desc', technologies: [], highlights: [] };
 let store: any;

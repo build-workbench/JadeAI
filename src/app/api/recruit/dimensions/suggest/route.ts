@@ -9,11 +9,19 @@ import {
   QUESTION_DIMENSION_DESCRIPTIONS,
   QUESTION_DIMENSION_LABELS,
 } from '@/lib/recruit/dimensions';
+import { requireUser } from '@/lib/recruit/access';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
 export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   try {
+    // This route burns AI tokens — require an authenticated user and rate-limit it
+    // like the other AI routes, otherwise it is an anonymous cost-amplification vector.
+    const auth = await requireUser(request);
+    if ('error' in auth) return auth.error;
+    const rate = checkRateLimit(`recruit-dimensions-suggest:${auth.user.id}`, { limit: 10, windowMs: 60_000 });
+    if (!rate.allowed) return rateLimitResponse(rate.retryAfterSeconds);
     const body = await request.json();
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     const jobDescription = typeof body.jobDescription === 'string' ? body.jobDescription.trim() : '';

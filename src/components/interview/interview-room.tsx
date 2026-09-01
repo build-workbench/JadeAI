@@ -85,7 +85,7 @@ export function InterviewRoom({ sessionId, initialMessages }: InterviewRoomProps
       setShowTransition(false);
       loadedRef.current = true;
     }
-  }, [currentRound?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentRound?.id, isRoundDone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Detect round completion
   useEffect(() => {
@@ -146,9 +146,11 @@ export function InterviewRoom({ sessionId, initialMessages }: InterviewRoomProps
     setIsViewingHistory(isDone);
     if (isDone) setShowTransition(false);
 
-    // Reset init refs
+    // Mark this round as loaded. Deliberately do NOT touch sentInitRef here — the
+    // try/catch above sets it to null for empty unfinished rounds, which is what
+    // lets shouldAutoStartRound fire INIT_TRIGGER when the user switches into a
+    // not-yet-started round.
     loadedRef.current = true;
-    sentInitRef.current = targetRound.id;
   }, [rounds, sessionId, sessionStatus, setCurrentRoundIndex, setMessages]);
 
   const handleNextRound = useCallback(() => {

@@ -1,5 +1,3 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,6 +12,7 @@ import { buildSidebarHtml } from '@/app/api/resume/[id]/export/templates/sidebar
 import { generatePlainText } from '@/app/api/resume/[id]/export/plain-text';
 import { generateDocxBuffer } from '@/app/api/resume/[id]/export/docx';
 import { parsedResumeSchema } from '@/lib/ai/parse-schema';
+import { test, expect } from 'vitest';
 
 function createResume(template: string): Resume {
   const now = new Date('2026-05-28T00:00:00.000Z');
@@ -80,50 +79,47 @@ function createResume(template: string): Resume {
 
 test('modern preview renders language descriptions', () => {
   const html = renderToStaticMarkup(<ModernTemplate resume={createResume('modern')} />);
-  assert.match(html, /能熟练阅读英文技术文档与论文/);
-  assert.match(html, /w-full text-sm leading-relaxed text-zinc-600/);
+  expect(html).toMatch(/能熟练阅读英文技术文档与论文/);
+  expect(html).toMatch(/w-full text-sm leading-relaxed text-zinc-600/);
 });
 
 test('modern preview language descriptions are not hard-capped to 320px', () => {
   const html = renderToStaticMarkup(<ModernTemplate resume={createResume('modern')} />);
-  assert.doesNotMatch(html, /max-w-\[320px\]/);
+  expect(html).not.toMatch(/max-w-\[320px\]/);
 });
 
 test('sidebar preview renders language descriptions', () => {
   const html = renderToStaticMarkup(<SidebarTemplate resume={createResume('sidebar')} />);
-  assert.match(html, /能熟练阅读英文技术文档与论文/);
+  expect(html).toMatch(/能熟练阅读英文技术文档与论文/);
 });
 
 test('modern HTML export renders language descriptions', () => {
   const html = buildModernHtml(createResume('modern') as any);
-  assert.match(html, /能熟练阅读英文技术文档与论文/);
-  assert.match(html, /w-full text-sm leading-relaxed text-zinc-600/);
+  expect(html).toMatch(/能熟练阅读英文技术文档与论文/);
+  expect(html).toMatch(/w-full text-sm leading-relaxed text-zinc-600/);
 });
 
 test('modern HTML export language descriptions are not hard-capped to 320px', () => {
   const html = buildModernHtml(createResume('modern') as any);
-  assert.doesNotMatch(html, /max-w-\[320px\]|max-width:320px/);
+  expect(html).not.toMatch(/max-w-\[320px\]|max-width:320px/);
 });
 
 test('modern HTML export wraps emoji with PDF-safe font fallback', () => {
   const resume = createResume('modern');
   const languageSection = resume.sections.find((section) => section.type === 'languages');
-  assert.ok(languageSection);
+  if (!languageSection) throw new Error('expected languages section');
   (languageSection.content as any).items[0].description =
     '📄 https://link.springer.com/article/10.1186/s40246-024-00666-w';
 
   const html = buildModernHtml(resume as any);
 
-  assert.match(
-    html,
-    /font-family:"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", emoji/,
-  );
-  assert.match(html, />📄<\/span>/);
+  expect(html).toMatch(/font-family:"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", emoji/);
+  expect(html).toMatch(/>📄<\/span>/);
 });
 
 test('sidebar HTML export renders language descriptions', () => {
   const html = buildSidebarHtml(createResume('sidebar') as any);
-  assert.match(html, /能熟练阅读英文技术文档与论文/);
+  expect(html).toMatch(/能熟练阅读英文技术文档与论文/);
 });
 
 test('generateHtml fills missing theme margin defaults for export CSS', async () => {
@@ -141,15 +137,15 @@ test('generateHtml fills missing theme margin defaults for export CSS', async ()
 
   const html = await generateHtml(resume as any, true, 'http://jadeai.test');
 
-  assert.match(html, /--base-margin-top: 32px;/);
-  assert.match(html, /--base-margin-right: 20px;/);
-  assert.match(html, /--base-margin-bottom: 20px;/);
-  assert.match(html, /--base-margin-left: 20px;/);
+  expect(html).toMatch(/--base-margin-top: 32px;/);
+  expect(html).toMatch(/--base-margin-right: 20px;/);
+  expect(html).toMatch(/--base-margin-bottom: 20px;/);
+  expect(html).toMatch(/--base-margin-left: 20px;/);
 });
 
 test('plain-text export renders language descriptions', () => {
   const text = generatePlainText(createResume('modern') as any);
-  assert.match(text, /能熟练阅读英文技术文档与论文/);
+  expect(text).toMatch(/能熟练阅读英文技术文档与论文/);
 });
 
 test('docx export renders language descriptions', async () => {
@@ -158,7 +154,7 @@ test('docx export renders language descriptions', async () => {
     const docxPath = join(tempDir, 'resume.docx');
     writeFileSync(docxPath, await generateDocxBuffer(createResume('modern') as any));
     const xml = execFileSync('unzip', ['-p', docxPath, 'word/document.xml'], { encoding: 'utf8' });
-    assert.match(xml, /能熟练阅读英文技术文档与论文/);
+    expect(xml).toMatch(/能熟练阅读英文技术文档与论文/);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -194,5 +190,5 @@ test('parsed resume schema accepts language descriptions', () => {
     ],
   });
 
-  assert.equal(parsed.languages?.[0]?.description, '能熟练阅读英文技术文档与论文，具备基本的英文技术交流能力。');
+  expect(parsed.languages?.[0]?.description).toBe('能熟练阅读英文技术文档与论文，具备基本的英文技术交流能力。');
 });

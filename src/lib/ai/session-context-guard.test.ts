@@ -1,11 +1,10 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import type { UIMessage } from 'ai';
 
 import {
   selectLatestResumeBaselineMessages,
   shouldRebaseChatContextToLatestResume,
 } from './session-context-guard';
+import { test, expect } from 'vitest';
 
 function createMessage(id: string, role: UIMessage['role'], text: string): UIMessage {
   return {
@@ -19,25 +18,19 @@ test('rebases context when resume was updated after the chat session', () => {
   const sessionUpdatedAt = '2026-06-01T10:00:00.000Z';
   const resumeUpdatedAt = '2026-06-01T10:00:00.100Z';
 
-  assert.equal(
-    shouldRebaseChatContextToLatestResume(sessionUpdatedAt, resumeUpdatedAt),
-    true
-  );
+  expect(shouldRebaseChatContextToLatestResume(sessionUpdatedAt, resumeUpdatedAt)).toBe(true);
 });
 
 test('does not rebase context when session is up to date', () => {
   const sessionUpdatedAt = '2026-06-01T10:00:00.100Z';
   const resumeUpdatedAt = '2026-06-01T10:00:00.000Z';
 
-  assert.equal(
-    shouldRebaseChatContextToLatestResume(sessionUpdatedAt, resumeUpdatedAt),
-    false
-  );
+  expect(shouldRebaseChatContextToLatestResume(sessionUpdatedAt, resumeUpdatedAt)).toBe(false);
 });
 
 test('does not rebase when updatedAt timestamps are unavailable', () => {
-  assert.equal(shouldRebaseChatContextToLatestResume(null, '2026-06-01T10:00:00.000Z'), false);
-  assert.equal(shouldRebaseChatContextToLatestResume('2026-06-01T10:00:00.000Z', undefined), false);
+  expect(shouldRebaseChatContextToLatestResume(null, '2026-06-01T10:00:00.000Z')).toBe(false);
+  expect(shouldRebaseChatContextToLatestResume('2026-06-01T10:00:00.000Z', undefined)).toBe(false);
 });
 
 test('keeps recent conversation turns for rebase context', () => {
@@ -54,10 +47,7 @@ test('keeps recent conversation turns for rebase context', () => {
 
   const selected = selectLatestResumeBaselineMessages(messages);
 
-  assert.deepEqual(
-    selected.map((message) => message.id),
-    ['user-2', 'assistant-2', 'user-3', 'assistant-3', 'user-4', 'assistant-4']
-  );
+  expect(selected.map((message) => message.id)).toEqual(['user-2', 'assistant-2', 'user-3', 'assistant-3', 'user-4', 'assistant-4']);
 });
 
 test('keeps recent messages when there is no user message', () => {
@@ -68,8 +58,5 @@ test('keeps recent messages when there is no user message', () => {
 
   const selected = selectLatestResumeBaselineMessages(messages);
 
-  assert.deepEqual(
-    selected.map((message) => message.id),
-    ['assistant-1', 'assistant-2']
-  );
+  expect(selected.map((message) => message.id)).toEqual(['assistant-1', 'assistant-2']);
 });

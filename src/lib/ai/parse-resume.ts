@@ -133,13 +133,18 @@ async function loadMupdfDoc(buffer: Uint8Array) {
 
 function extractPdfText(buffer: Buffer): Promise<string> {
   return loadMupdfDoc(new Uint8Array(buffer)).then(({ doc }) => {
-    const pageCount = Math.min(doc.countPages(), MAX_PDF_PAGES);
-    const parts: string[] = [];
-    for (let i = 0; i < pageCount; i++) {
-      const page = doc.loadPage(i);
-      parts.push(page.toStructuredText('preserve-whitespace').asText());
+    try {
+      const pageCount = Math.min(doc.countPages(), MAX_PDF_PAGES);
+      const parts: string[] = [];
+      for (let i = 0; i < pageCount; i++) {
+        const page = doc.loadPage(i);
+        parts.push(page.toStructuredText('preserve-whitespace').asText());
+      }
+      return parts.join('\n').trim();
+    } finally {
+      // mupdf documents hold WASM/native memory — always release them.
+      doc.destroy();
     }
-    return parts.join('\n').trim();
   }).catch((e) => {
     console.warn('[parse] mupdf text extraction failed:', (e as Error).message);
     return '';
@@ -148,22 +153,26 @@ function extractPdfText(buffer: Buffer): Promise<string> {
 
 async function pdfPagesToImages(buffer: Uint8Array): Promise<Uint8Array[]> {
   const { mupdf, doc } = await loadMupdfDoc(buffer);
-  const pageCount = Math.min(doc.countPages(), MAX_PDF_PAGES);
-  const images: Uint8Array[] = [];
+  try {
+    const pageCount = Math.min(doc.countPages(), MAX_PDF_PAGES);
+    const images: Uint8Array[] = [];
 
-  for (let i = 0; i < pageCount; i++) {
-    const page = doc.loadPage(i);
-    // Render at 2x scale for better OCR quality
-    const pixmap = page.toPixmap(
-      mupdf.Matrix.scale(2, 2),
-      mupdf.ColorSpace.DeviceRGB,
-      false, // no alpha
-      true,  // annots
-    );
-    images.push(pixmap.asPNG());
+    for (let i = 0; i < pageCount; i++) {
+      const page = doc.loadPage(i);
+      // Render at 2x scale for better OCR quality
+      const pixmap = page.toPixmap(
+        mupdf.Matrix.scale(2, 2),
+        mupdf.ColorSpace.DeviceRGB,
+        false, // no alpha
+        true,  // annots
+      );
+      images.push(pixmap.asPNG());
+    }
+
+    return images;
+  } finally {
+    doc.destroy();
   }
-
-  return images;
 }
 
 // ─── JSON Parsing ────────────────────────────────────────────────────────────
@@ -327,6 +336,7 @@ function mapToResumeSchema(raw: Record<string, unknown>): ParsedResume {
     (l: Record<string, unknown>) => ({
       language: str(l.language || l.name || ''),
       proficiency: str(l.proficiency || l.level || ''),
+      description: str(l.description || l.details || l.notes || ''),
     })
   );
 

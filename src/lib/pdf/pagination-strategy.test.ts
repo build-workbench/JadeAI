@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import {
   getUsableHeight,
@@ -8,6 +6,7 @@ import {
   resolvePaginationStrategyConfig,
   type PaginationContext,
 } from './pagination-strategy';
+import { test, expect } from 'vitest';
 
 function createContext(
   overrides: Partial<PaginationContext['profile']> = {},
@@ -40,11 +39,11 @@ function createContext(
 test('resolvePaginationStrategyConfig returns fit-one-page settings', () => {
   const config = resolvePaginationStrategyConfig('fit-one-page', createContext());
 
-  assert.equal(config.styleId, '__fit-one-page');
-  assert.equal(config.maxIterations, 20);
-  assert.equal(config.scaleStepPct, 5);
-  assert.equal(config.allowZoom, true);
-  assert.equal(config.cleanupOnFailure, false);
+  expect(config.styleId).toBe('__fit-one-page');
+  expect(config.maxIterations).toBe(20);
+  expect(config.scaleStepPct).toBe(5);
+  expect(config.allowZoom).toBe(true);
+  expect(config.cleanupOnFailure).toBe(false);
 });
 
 test('resolvePaginationStrategyConfig returns aggressive blank-page settings', () => {
@@ -53,11 +52,11 @@ test('resolvePaginationStrategyConfig returns aggressive blank-page settings', (
     createContext({ blankPagePrevention: 'aggressive-fit' }),
   );
 
-  assert.equal(config.styleId, '__prevent-blank');
-  assert.equal(config.maxIterations, 20);
-  assert.equal(config.scaleStepPct, 1);
-  assert.equal(config.overflowGuard, 1.2);
-  assert.equal(config.cleanupOnFailure, true);
+  expect(config.styleId).toBe('__prevent-blank');
+  expect(config.maxIterations).toBe(20);
+  expect(config.scaleStepPct).toBe(1);
+  expect(config.overflowGuard).toBe(1.2);
+  expect(config.cleanupOnFailure).toBe(true);
 });
 
 test('resolvePaginationStrategyConfig disables blank-page mode when prevention is off', () => {
@@ -66,59 +65,44 @@ test('resolvePaginationStrategyConfig disables blank-page mode when prevention i
     createContext({ blankPagePrevention: 'none' }),
   );
 
-  assert.equal(config.disabledReason, 'disabled');
-  assert.equal(config.maxIterations, 0);
+  expect(config.disabledReason).toBe('disabled');
+  expect(config.maxIterations).toBe(0);
 });
 
 test('getUsableHeight models physical PDF page margins', () => {
-  assert.equal(getUsableHeight(createContext({ pageMode: 'standard' })), 1083);
-  assert.equal(
-    getUsableHeight({
+  expect(getUsableHeight(createContext({ pageMode: 'standard' }))).toBe(1083);
+  expect(getUsableHeight({
       ...createContext({ pageMode: 'standard' }),
       needsPadding: false,
-    }),
-    1083,
-  );
-  assert.equal(
-    getUsableHeight({
+    })).toBe(1083);
+  expect(getUsableHeight({
       ...createContext({ pageMode: 'edge-to-edge' }),
       needsPadding: false,
       marginTop: 0,
       marginBottom: 0,
-    }),
-    1123,
-  );
+    })).toBe(1123);
 });
 
 test('getUsableHeight reserves background template physical safe margins', () => {
-  assert.equal(
-    getUsableHeight({
+  expect(getUsableHeight({
       ...createContext({ pageMode: 'edge-to-edge', surfaceMode: 'background' }),
       needsPadding: false,
       marginTop: 38,
       marginBottom: 38,
-    }),
-    1047,
-  );
+    })).toBe(1047);
 });
 
 test('getMaxMarginDelta preserves edge-to-edge fragment padding floor', () => {
-  assert.equal(
-    getMaxMarginDelta({
+  expect(getMaxMarginDelta({
       ...createContext({ shrinkTarget: 'child-padding' }),
       childPaddingTop: 19,
       fragmentPaddingFloor: 19,
-    }),
-    0,
-  );
-  assert.equal(
-    getMaxMarginDelta({
+    })).toBe(0);
+  expect(getMaxMarginDelta({
       ...createContext({ shrinkTarget: 'child-padding' }),
       childPaddingTop: 32,
       fragmentPaddingFloor: 19,
-    }),
-    13,
-  );
+    })).toBe(13);
 });
 
 test('resolvePaginationTargetPlan packs a small multi-page trailing fragment', () => {
@@ -126,12 +110,12 @@ test('resolvePaginationTargetPlan packs a small multi-page trailing fragment', (
   const config = resolvePaginationStrategyConfig('prevent-blank-page', context);
   const plan = resolvePaginationTargetPlan('prevent-blank-page', 2080, 1000, context, config);
 
-  assert.equal(plan.estimatedPageCount, 3);
-  assert.equal(plan.targetPageCount, 2);
-  assert.equal(plan.trailingFragmentHeight, 80);
-  assert.equal(plan.trailingFragmentRatio, 0.08);
-  assert.equal(plan.targetHeight, 1952);
-  assert.equal(plan.skipReason, null);
+  expect(plan.estimatedPageCount).toBe(3);
+  expect(plan.targetPageCount).toBe(2);
+  expect(plan.trailingFragmentHeight).toBe(80);
+  expect(plan.trailingFragmentRatio).toBe(0.08);
+  expect(plan.targetHeight).toBe(1952);
+  expect(plan.skipReason).toBe(null);
 });
 
 test('resolvePaginationTargetPlan skips large trailing fragments as normal content', () => {
@@ -139,10 +123,10 @@ test('resolvePaginationTargetPlan skips large trailing fragments as normal conte
   const config = resolvePaginationStrategyConfig('prevent-blank-page', context);
   const plan = resolvePaginationTargetPlan('prevent-blank-page', 2500, 1000, context, config);
 
-  assert.equal(plan.estimatedPageCount, 3);
-  assert.equal(plan.targetPageCount, 2);
-  assert.equal(plan.trailingFragmentHeight, 500);
-  assert.equal(plan.skipReason, 'no-blank-risk');
+  expect(plan.estimatedPageCount).toBe(3);
+  expect(plan.targetPageCount).toBe(2);
+  expect(plan.trailingFragmentHeight).toBe(500);
+  expect(plan.skipReason).toBe('no-blank-risk');
 });
 
 test('resolvePaginationTargetPlan lets aggressive profiles pack larger absolute fragments', () => {
@@ -169,6 +153,6 @@ test('resolvePaginationTargetPlan lets aggressive profiles pack larger absolute 
     aggressiveConfig,
   );
 
-  assert.equal(lightPlan.skipReason, 'no-blank-risk');
-  assert.equal(aggressivePlan.skipReason, null);
+  expect(lightPlan.skipReason).toBe('no-blank-risk');
+  expect(aggressivePlan.skipReason).toBe(null);
 });

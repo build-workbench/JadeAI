@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import type { AIChatUIMessage } from '@/types/ai';
 import {
@@ -7,6 +5,7 @@ import {
   getNextToolResultReloadState,
   isCompletedToolPart,
 } from './chat-stream-state';
+import { test, expect } from 'vitest';
 
 function assistantWithTool(state: string): AIChatUIMessage {
   return {
@@ -23,24 +22,24 @@ function assistantWithTool(state: string): AIChatUIMessage {
 }
 
 test('detects only completed AI tool output parts', () => {
-  assert.equal(isCompletedToolPart({ type: 'tool-updateSection', state: 'output-available' }), true);
-  assert.equal(isCompletedToolPart({ type: 'tool-updateSection', state: 'input-available' }), false);
-  assert.equal(isCompletedToolPart({ type: 'text', text: 'hello' }), false);
+  expect(isCompletedToolPart({ type: 'tool-updateSection', state: 'output-available' })).toBe(true);
+  expect(isCompletedToolPart({ type: 'tool-updateSection', state: 'input-available' })).toBe(false);
+  expect(isCompletedToolPart({ type: 'text', text: 'hello' })).toBe(false);
 });
 
 test('counts completed assistant tool outputs across messages', () => {
-  assert.equal(countCompletedToolParts([
+  expect(countCompletedToolParts([
     assistantWithTool('output-available'),
     assistantWithTool('input-available'),
     { id: 'user-1', role: 'user', parts: [{ type: 'text', text: 'hello' }] },
-  ]), 1);
+  ])).toBe(1);
 });
 
 test('reload state ignores tool results already present in initial history', () => {
   const initialMessages = [assistantWithTool('output-available')];
   const initialCount = countCompletedToolParts(initialMessages);
 
-  assert.deepEqual(getNextToolResultReloadState(initialCount, initialMessages), {
+  expect(getNextToolResultReloadState(initialCount, initialMessages)).toEqual({
     shouldReload: false,
     completedToolCount: 1,
   });
@@ -50,7 +49,7 @@ test('reload state triggers exactly when a new tool output appears', () => {
   const previousMessages = [assistantWithTool('output-available')];
   const nextMessages = [...previousMessages, assistantWithTool('output-available')];
 
-  assert.deepEqual(getNextToolResultReloadState(1, nextMessages), {
+  expect(getNextToolResultReloadState(1, nextMessages)).toEqual({
     shouldReload: true,
     completedToolCount: 2,
   });

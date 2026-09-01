@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 import { shouldAutoStartRound } from './round-state';
+import { test, expect } from 'vitest';
 
 const base = {
   roundId: 'round-1',
@@ -14,19 +13,19 @@ const base = {
 };
 
 test('auto-starts an empty active round', () => {
-  assert.equal(shouldAutoStartRound(base), true);
+  expect(shouldAutoStartRound(base)).toBe(true);
 });
 
 test('does not auto-start while round history is loading', () => {
-  assert.equal(shouldAutoStartRound({ ...base, loadingRoundId: 'round-1' }), false);
+  expect(shouldAutoStartRound({ ...base, loadingRoundId: 'round-1' })).toBe(false);
 });
 
 test('does not auto-start completed history or rounds with messages', () => {
-  assert.equal(shouldAutoStartRound({ ...base, isRoundDone: true }), false);
-  assert.equal(shouldAutoStartRound({ ...base, isViewingHistory: true }), false);
-  assert.equal(shouldAutoStartRound({ ...base, messageCount: 1 }), false);
+  expect(shouldAutoStartRound({ ...base, isRoundDone: true })).toBe(false);
+  expect(shouldAutoStartRound({ ...base, isViewingHistory: true })).toBe(false);
+  expect(shouldAutoStartRound({ ...base, messageCount: 1 })).toBe(false);
 });
 
 test('does not auto-start the same round twice', () => {
-  assert.equal(shouldAutoStartRound({ ...base, lastInitRoundId: 'round-1' }), false);
+  expect(shouldAutoStartRound({ ...base, lastInitRoundId: 'round-1' })).toBe(false);
 });
