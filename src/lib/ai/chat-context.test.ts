@@ -3,7 +3,7 @@ import type { UIMessage } from 'ai';
 import { buildChatContextMessages } from './chat-context';
 import { EMPTY_ASSISTANT_RESPONSE_ERROR_TEXT } from './chat-response-status';
 import { dbMessagesToUIMessages } from './utils';
-import { test, it, expect } from 'vitest';
+import { test, expect } from 'vitest';
 
 function createConversation(pattern: string): UIMessage[] {
   const messages: UIMessage[] = [];

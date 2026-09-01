@@ -28,6 +28,7 @@ function makeStore() {
     sections: [
       { id: 'sec-proj', type: 'projects', title: 'Projects', content: { items: [projectItem] } },
       { id: 'sec-skills', type: 'skills', title: 'Skills', content: { categories: [] } },
+      { id: 'custom-section-1', type: 'custom', title: '旧标题', content: { items: [{ id: 'item-1', title: '条目标题', description: '条目描述' }] } },
     ],
   };
   lastWrite = null;
@@ -115,5 +116,30 @@ describe('updateSection — list field validation (issue #69)', () => {
 
     expect(res.success).toBe(true);
     expect(lastWrite?.data.content.categories[0].skills).toEqual(['Go', 'Rust']);
+  });
+});
+
+
+describe('updateSection — section title rename', () => {
+  beforeEach(makeStore);
+
+  it('can rename section title with field="title"', async () => {
+    const res = await runUpdate({ sectionId: 'custom-section-1', field: 'title', value: '技术关键字' });
+
+    expect(res.success).toBe(true);
+    expect(lastWrite).toEqual({
+      sectionId: 'custom-section-1',
+      data: { title: '技术关键字' },
+    });
+  });
+
+  it('can rename section title with field="sectionTitle"', async () => {
+    const res = await runUpdate({ sectionId: 'custom-section-1', field: 'sectionTitle', value: 'Technical Keywords' });
+
+    expect(res.success).toBe(true);
+    expect(lastWrite).toEqual({
+      sectionId: 'custom-section-1',
+      data: { title: 'Technical Keywords' },
+    });
   });
 });

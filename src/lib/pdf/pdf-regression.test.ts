@@ -131,7 +131,7 @@ describe('pdf regression suite', () => {
     expect(artifact.pages[0] || '').toMatch(/全栈工程师/);
   });
 
-  testWithPdfRenderer('swiss export widens section headers for page-top fragments', async () => {
+  it('swiss export widens section headers for page-top fragments', async () => {
     const resume = getPdfRegressionFixture('swiss-page-gap');
     const html = await generatePdfHtml(resume as any, TEST_FONT_BASE_URL);
     expect(html).toMatch(/data-section-heading="wide"/);
