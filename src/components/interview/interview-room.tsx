@@ -48,7 +48,6 @@ export function InterviewRoom({ sessionId, initialMessages }: InterviewRoomProps
   // Load initial messages from DB on first render
   const loadedInitialRoundRef = useRef<string | null>(null);
   const sentInitRef = useRef<string | null>(null);
-  const loadedRef = useRef(false);
   useEffect(() => {
       if (
         initialMessages &&
@@ -78,14 +77,16 @@ export function InterviewRoom({ sessionId, initialMessages }: InterviewRoomProps
     }
   }, [currentRound?.id, isLoading, isRoundDone, isViewingHistory, loadingRoundId, messages.length, sendMessage]);
 
-  // Auto-set viewing history if round is already done
+  // Auto-set viewing history when the whole session is done. Deliberately NOT
+  // keyed on isRoundDone: a single round completing (AI's [ROUND_COMPLETE]) must
+  // still show the transition screen — only a completed session goes read-only.
   useEffect(() => {
-    if (currentRound && isRoundDone) {
+    if (currentRound && sessionStatus === 'completed') {
       setIsViewingHistory(true);
       setShowTransition(false);
-      loadedRef.current = true;
+      loadedInitialRoundRef.current = currentRound.id;
     }
-  }, [currentRound?.id, isRoundDone]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentRound?.id, sessionStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Detect round completion
   useEffect(() => {
@@ -146,11 +147,12 @@ export function InterviewRoom({ sessionId, initialMessages }: InterviewRoomProps
     setIsViewingHistory(isDone);
     if (isDone) setShowTransition(false);
 
-    // Mark this round as loaded. Deliberately do NOT touch sentInitRef here — the
+    // Mark this round as loaded so the initial-messages effect doesn't clobber the
+    // switched round's messages. Deliberately do NOT touch sentInitRef here — the
     // try/catch above sets it to null for empty unfinished rounds, which is what
     // lets shouldAutoStartRound fire INIT_TRIGGER when the user switches into a
     // not-yet-started round.
-    loadedRef.current = true;
+    loadedInitialRoundRef.current = targetRound.id;
   }, [rounds, sessionId, sessionStatus, setCurrentRoundIndex, setMessages]);
 
   const handleNextRound = useCallback(() => {

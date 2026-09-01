@@ -7,7 +7,7 @@ import { translateInputSchema } from '@/lib/ai/translate-schema';
 import { extractJson } from '@/lib/ai/extract-json';
 import type { ResumeSection } from '@/types/resume';
 import { z } from 'zod/v4';
-import { normalizeResumeSectionContent } from '@/lib/resume-section/schema';
+import { normalizeSectionContent } from '@/lib/resume/normalize-content';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
               if (!sectionType) {
                 throw new Error(`Section not found in translation target set: ${translated.sectionId}`);
               }
-              const normalizedContent = normalizeResumeSectionContent(sectionType, content as unknown);
+              const normalizedContent = normalizeSectionContent(sectionType, content as unknown);
 
               await resumeRepository.updateSection(translated.sectionId, {
                 title: translated.title,

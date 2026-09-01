@@ -20,7 +20,7 @@ function flattenResume(data: ParsedResume): string {
 
   for (const w of data.workExperience ?? []) {
     parts.push(
-      `工作经历：${w.company}｜${w.position}｜${w.startDate} - ${w.current ? '至今' : w.endDate || ''}\n${w.description || ''}\n${(w.highlights ?? []).map((h) => `- ${h}`).join('\n')}`,
+      `工作经历：${w.company}${w.team ? `｜${w.team}` : ''}｜${w.position}｜${w.startDate} - ${w.current ? '至今' : w.endDate || ''}\n${w.description || ''}\n${(w.highlights ?? []).map((h) => `- ${h}`).join('\n')}`,
     );
   }
   for (const e of data.education ?? []) {

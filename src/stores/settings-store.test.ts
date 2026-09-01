@@ -6,6 +6,13 @@ import { test, expect, afterEach } from 'vitest';
 const openaiDefaults = AI_PROVIDER_DEFAULTS.openai;
 const anthropicDefaults = AI_PROVIDER_DEFAULTS.anthropic;
 
+let originalFetch: typeof globalThis.fetch = globalThis.fetch;
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+  resetSettings();
+});
+
 function resetSettings(overrides: Partial<ReturnType<typeof useSettingsStore.getState>> = {}) {
   useSettingsStore.setState({
     aiProvider: 'openai',
@@ -103,11 +110,7 @@ test('clearing a local key reconciles visible AI settings back to server default
 });
 
 test('hydrate surfaces settings load failures', async () => {
-  const originalFetch = globalThis.fetch;
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
-    resetSettings();
-  });
+  originalFetch = globalThis.fetch;
 
   globalThis.fetch = async () => new Response(JSON.stringify({ error: 'settings service unavailable' }), { status: 503 });
   resetSettings({ _hydrated: false });
@@ -120,11 +123,7 @@ test('hydrate surfaces settings load failures', async () => {
 });
 
 test('debounced settings sync surfaces save failures', async () => {
-  const originalFetch = globalThis.fetch;
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
-    resetSettings();
-  });
+  originalFetch = globalThis.fetch;
 
   globalThis.fetch = async () => new Response(JSON.stringify({ error: 'settings save failed' }), { status: 500 });
   resetSettings();
