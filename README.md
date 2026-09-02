@@ -18,7 +18,7 @@
 [![Powered by OrcaRouter](https://img.shields.io/badge/Powered_by-OrcaRouter-2563eb)](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17)
 
 
-[English](./README.en.md) · [更新日志](./changelog/)
+[更新日志](./changelog/)
 
 </div>
 
@@ -36,34 +36,58 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 - 在模拟面试里按岗位要求练习，并生成评估报告
 - 导出 PDF / DOCX / HTML / TXT / JSON，或生成分享链接
 
-## 核心能力
+## 最近更新
 
+### v0.5.0 · 桌面客户端首发
+- **[桌面客户端](#桌面客户端)** 正式发布：macOS（Apple Silicon / Intel）与 Windows x64 安装包，零配置、无需账号、数据全在本机
+- 客户端内置更新提示，可直接下载对应架构的安装包
+- Web 与客户端统一发版：同一个 tag 同时产出 Docker 镜像与三平台安装包
+- 修复导出功能在容器中运行一段时间后失效（#95）
+- 简历子项支持上移 / 下移 / 在上方插入（#89，感谢 @Silas-Zhu）
+
+### v0.3.4 · 主题色系统与配色切换
+- 引入语义化 `--brand-*` CSS token，下线全站 60+ 文件硬编码 `pink-*`
+- 用户菜单新增主题色切换器，三套预设：**薄荷**（默认）、**经典蓝**、**玫粉**
+- SSR 安全的防闪烁初始化；老版本 `localStorage` 值自动迁移
+- 简历主题编辑器新增「薄荷」预设
+- 导出通道（PDF / HTML / DOCX）统一读取 `src/lib/brand-constants.ts`
+
+## 核心能力
 
 ### 简历编辑
 
-
-### v0.5.0 · Desktop Client
-- **[Desktop client](#desktop-client)** released: macOS (Apple Silicon / Intel)
-  and Windows x64 installers — zero config, no account, data stays local
-- Built-in update notice that downloads the installer for your machine
-- Web and desktop now ship together: one tag produces both the Docker image and
-  all three installers
-- Fixed PDF export failing after the container had been up for a while (#95)
-- Resume items can be moved up/down and inserted above (#89, thanks @Silas-Zhu)
-
-### v0.3.4 · Brand Color System & Theme Switching
-- Introduced semantic `--brand-*` CSS tokens; replaced hardcoded `pink-*` across 60+ files
-- New brand switcher in the user menu with three presets: **Mint** (default), **Blue**, **Pink**
-- SSR-safe anti-flicker hydration; legacy values auto-migrated via `localStorage`
-- Added a Mint resume preset to the theme editor
-- Export pipelines (PDF / HTML / DOCX) now read from `src/lib/brand-constants.ts`
-
-
 - **拖拽式编辑器**：模块、条目与顺序可直接调整
+- **行内编辑**：点击任意字段，直接在画布上编辑
 - **50 套模板**：覆盖通用、创意、技术、金融、学术等风格
 - **主题定制**：颜色、字体、间距、页边距实时预览
 - **Markdown 支持**：摘要、经历、项目等文本支持 Markdown 排版
+- **撤销 / 重做**：完整编辑历史（最多 50 步）
+- **自动保存**：可配置保存间隔（0.3s–5s），支持手动保存
 - **多简历管理**：支持创建、复制、重命名、搜索和排序
+
+### Markdown 格式支持
+
+以下简历模块支持 Markdown 语法：
+
+| 模块 | 支持字段 |
+|------|---------|
+| 个人简介（Summary） | 正文内容 |
+| 工作经历 | 描述、亮点（Highlights） |
+| 教育背景 | 亮点（Highlights） |
+| 项目经历 | 描述、亮点（Highlights） |
+| 自定义模块 | 描述 |
+| 语言能力 | 描述 |
+| GitHub | 描述 |
+
+**支持的语法：**
+
+```
+**加粗文字**    → 粗体
+`代码文字`      → 行内代码
+- 列表项        → 无序列表
+```
+
+> 技能、证书、个人信息等字段暂不支持 Markdown。
 
 ### AI 求职能力
 
@@ -74,6 +98,7 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 - **语法与写作检查**：识别弱表达、语法问题与可优化内容
 - **多语言翻译**：跨语言转换并保留技术术语
 - **AI 求职信**：结合简历和 JD 生成定制求职信
+- **灵活 AI 供应商**：支持 OpenAI、Anthropic 及任意兼容 OpenAI 的 API 端点（例如 [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17)，一个 Key 即可调用 200+ 模型）；用户在应用内自行配置密钥
 
 ### 版本与恢复
 
@@ -85,16 +110,34 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 
 - **基于 JD 的面试模拟**：按岗位描述生成面试流程
 - **多角色面试官**：HR、技术、行为、项目深挖、Leader 等
+- **自定义面试官**：创建自定义面试官，设定考察维度和风格
 - **追问与提示**：根据回答质量动态追问
-- **面试报告**：评分、维度分析、建议与导出
+- **面试控制**：跳过问题、请求提示、标记复习、暂停 / 继续
+- **面试报告**：评分、维度分析、建议与导出（支持 PDF 与 Markdown）
+- **历史对比**：追踪评分趋势和能力维度变化
 
 ### 导出与分享
 
 - **多格式导出**：PDF、智能一页 PDF、DOCX、HTML、TXT、JSON
 - **JSON 导入**：可恢复现有简历或创建新简历
 - **分享链接**：支持密码保护与访问统计
+- **浏览统计**：追踪分享简历的查看次数
 - **本地 PDF 渲染依赖**：优先使用系统 Chrome / Chromium。生产环境建议设置 `CHROME_PATH` 指向已安装的浏览器；如确实需要运行时下载 bundled Chromium，必须显式设置 `ALLOW_CHROMIUM_DOWNLOAD=true`。
 - **PDF 分页引擎**：`fit-one-page` 与 `prevent-blank-page` 现在共用同一个分页策略入口，并可在 `node --import tsx scripts/benchmark-pdf-layout.ts` 中输出分页 telemetry，便于比较不同渲染引擎与压缩效果。
+
+### 简历管理
+
+- **多简历仪表盘**：网格和列表视图、搜索、排序（按日期、名称）
+- **JSON 导入创建**：在仪表盘直接通过 JSON 文件创建新简历
+- **复制与重命名**：快捷简历管理操作
+- **新手引导**：交互式分步引导，帮助新用户快速上手
+
+### 其他
+
+- **双语界面**：完整的中文（zh）和英文（en）界面
+- **暗色模式**：浅色、深色、跟随系统三种主题
+- **灵活认证**：Google OAuth 或浏览器指纹（零配置即用）
+- **本地 SQLite 存储**：零配置的文件型数据库
 
 ## 技术栈
 
@@ -108,207 +151,70 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 | 导出 | Puppeteer Core、Chromium、DOCX |
 | 国际化 | next-intl |
 
-## 快速开始
+## 桌面客户端
 
+**欢迎试用桌面客户端** —— 不用部署、不用注册、不用联网，下载装上就能写简历。
 
-### Docker（推荐）
+[![下载客户端](https://img.shields.io/badge/下载客户端-macOS%20%7C%20Windows-2ea44f?style=for-the-badge)](https://github.com/LingyiChen-AI/JadeAI/releases/latest)
 
+它跑的是和 Web 版**完全相同**的应用——50 套模板、AI 润色、JD 匹配、模拟面试、多格式导出，一个都不少。区别只在于服务跑在你自己的电脑上：
 
-| Interview List | Interview Report |
-|:---:|:---:|
-| ![Interview List](images/面试列表.png) | ![Interview Report](images/面试报告.png) |
+- **零配置** —— 装完打开就能用，不需要 Docker、不需要数据库、不需要 `AUTH_SECRET`
+- **不需要账号** —— 本机单用户，没有登录，没有指纹识别
+- **数据只在本机** —— 简历存在你电脑上的一个 SQLite 文件里，不经过任何服务器
+- **AI 用你自己的 Key** —— 在应用内「设置 → AI」里填，请求直连你配置的服务商
+- **自动提示更新** —— 有新版时右下角弹个小条，点一下就下载好对应你机器的安装包
 
-## Deployment Video
+> 唯一的对外网络请求是启动时问 GitHub 有没有新版本，可以关掉（见下文「更新」）。
 
-Watch the full deployment walkthrough on Bilibili:
+### 下载
 
-[![Deployment Video](https://i0.hdslb.com/bfs/archive/deployment-preview.jpg)](https://www.bilibili.com/video/BV1h7wQzSEYe/)
+从 **[最新 Release](https://github.com/LingyiChen-AI/JadeAI/releases/latest)** 下载对应你系统的包：
 
-> [Watch on Bilibili →](https://www.bilibili.com/video/BV1h7wQzSEYe/)
-
-## Features
-
-### Resume Editing
-
-- **Drag & Drop Editor** — Visually arrange and reorder resume sections and items
-- **Inline Editing** — Click any field to edit directly on the canvas
-- **50 Professional Templates** — Classic, Modern, Minimal, Creative, ATS-Friendly, Timeline, Nordic, Swiss, and more
-- **Theme Customization** — Colors, fonts, spacing, and margins with live preview
-- **Undo / Redo** — Full edit history (up to 50 steps)
-- **Auto Save** — Configurable interval (0.3s–5s), with manual save option
-- **Markdown Support** — Use Markdown syntax in text fields to format content (e.g., `**bold**` for **bold text**)
-
-### Markdown Formatting
-
-The following resume sections support Markdown syntax:
-
-| Section | Supported Fields |
-|---------|-----------------|
-| Summary | Content text |
-| Work Experience | Description, Highlights |
-| Education | Highlights |
-| Projects | Description, Highlights |
-| Custom Section | Description |
-| Languages | Description |
-| GitHub | Description |
-
-**Supported syntax:**
-
-```
-**bold text**    → bold
-`code text`      → inline code
-- item           → bullet list
-```
-
-> Skills, Certifications, and Personal Info fields do not support Markdown.
-
-### AI Capabilities
-
-- **AI Chat Assistant** — Conversational AI integrated in the editor, with multi-session support and persistent history
-- **AI Resume Generation** — Generate a complete resume from job title, experience, and skills
-- **Resume Parsing** — Upload an existing PDF or image, AI extracts all content automatically
-- **JD Match Analysis** — Compare resume against a job description: keyword matching, ATS score, and improvement suggestions
-- **Cover Letter Generation** — AI-tailored cover letter based on resume and JD, with tone selection (formal / friendly / confident)
-- **Grammar & Writing Check** — Detect weak verbs, vague descriptions, and grammar issues; returns a quality score
-- **Translation** — Translate resume content across 10 languages while preserving technical terms
-- **Flexible AI Provider** — Supports OpenAI, Anthropic, and any OpenAI-compatible endpoint (such as [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17), which exposes 200+ models behind one key); each user configures their own key in-app
-
-### Mock Interview
-
-- **JD-Based Interview Simulation** — Paste a job description, AI plays different interviewer roles in sequence
-- **6 Preset Interviewers** — HR, Technical, Scenario, Behavioral, Project Deep Dive, Leader — each with unique personality and questioning style
-- **Custom Interviewers** — Create your own interviewer with custom focus areas and style
-- **Smart Follow-ups** — AI adapts questions based on answer quality, probing deeper when needed
-- **Interview Controls** — Skip questions, request hints, mark for review, pause/resume
-- **Detailed Report** — Per-question scoring, competency radar chart, improvement plan with resources
-- **History Comparison** — Track score trends and dimension progress across interviews
-- **PDF & Markdown Export** — Export interview reports for offline review
-
-### Export & Sharing
-
-- **Multi-Format Export** — PDF (Puppeteer + Chromium), Smart One-Page PDF (auto-fit to single page), DOCX, HTML, TXT, JSON
-- **JSON Import** — Import a previously exported JSON file to restore or create a resume; supported both in the editor (overwrite current) and on the dashboard (create new)
-- **Link Sharing** — Token-based shareable links with optional password protection
-- **View Counter** — Track how many times a shared resume has been viewed
-
-### Management
-
-- **Multi-Resume Dashboard** — Grid and list views, search, sort (by date, name)
-- **Import from JSON** — Create a new resume from a JSON export directly on the dashboard
-- **Duplicate & Rename** — Quick resume management actions
-- **Interactive Tours** — Step-by-step onboarding for first-time users
-
-### Other
-
-- **Bilingual UI** — Full Chinese (zh) and English (en) interface
-- **Dark Mode** — Light, dark, and system theme support
-- **Flexible Auth** — Google OAuth or browser fingerprint (zero-config)
-- **Local SQLite Storage** — Zero-config, file-based database
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| UI | React 19, Tailwind CSS 4, shadcn/ui, Radix UI |
-| Drag & Drop | @dnd-kit |
-| State | Zustand |
-| Database | Drizzle ORM (SQLite) |
-| Auth | NextAuth.js v5 + FingerprintJS |
-| AI | Vercel AI SDK v6 + OpenAI / Anthropic |
-| PDF | Puppeteer Core + @sparticuz/chromium |
-| i18n | next-intl |
-| Validation | Zod v4 |
-
-## Desktop Client
-
-**Try the desktop app** — nothing to deploy, no account, no network. Download,
-install, start writing.
-
-[![Download](https://img.shields.io/badge/Download-macOS%20%7C%20Windows-2ea44f?style=for-the-badge)](https://github.com/LingyiChen-AI/JadeAI/releases/latest)
-
-It runs the **same** application as the web version — all 50 templates, AI
-polish, JD matching, mock interviews, every export format. The difference is
-only where it runs:
-
-- **Zero config** — no Docker, no database, no `AUTH_SECRET`. Install and open.
-- **No account** — one local user, no sign-in, no fingerprinting
-- **Your data stays put** — resumes live in a SQLite file on your machine and
-  never reach a server
-- **Your own AI key** — set it in Settings → AI; requests go straight to the
-  provider you configured
-- **Update notices** — a small panel appears when a new version is out and
-  downloads the installer built for your machine
-
-> The only outbound request it makes is asking GitHub whether a newer version
-> exists, and that can be turned off (see Updates below).
-
-### Download
-
-Grab the build for your system from the **[latest release](https://github.com/LingyiChen-AI/JadeAI/releases/latest)**:
-
-| Platform | File |
+| 平台 | 文件 |
 |---|---|
-| macOS (Apple Silicon) | `JadeAI-*-mac-arm64.dmg` |
-| macOS (Intel) | `JadeAI-*-mac-x64.dmg` |
-| Windows (x64) | `JadeAI-*-win-x64-setup.exe` |
+| macOS（Apple Silicon，M 系列芯片） | `JadeAI-*-mac-arm64.dmg` |
+| macOS（Intel） | `JadeAI-*-mac-x64.dmg` |
+| Windows（x64） | `JadeAI-*-win-x64-setup.exe` |
 
-### First launch
+### 首次打开
 
-The installers carry an **ad-hoc signature** — valid, but anonymous. There is no
-Apple Developer ID and no notarization, so the OS blocks the first launch. This
-is expected.
+安装包带的是 **ad-hoc 签名**——有效，但匿名。没有 Apple Developer ID，也没有公证，所以系统会拦下第一次启动。这是预期行为。
 
-**macOS.** Run this once, then open the app normally:
+**macOS。** 在终端跑一次这条，然后正常双击打开：
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/JadeAI.app
 ```
 
-Or via the GUI: after the launch is blocked, open **System Settings → Privacy &
-Security** and click **Open Anyway** near the bottom.
+也可以走图形界面：被拦下后打开 **系统设置 → 隐私与安全性**，拉到底点**仍要打开**。
 
-> Do not rely on right-click → Open. macOS 15 removed that bypass for
-> un-notarized apps; it no longer does anything.
+> 不要依赖“右键 → 打开”。macOS 15 起 Apple 移除了这个绕过方式，对未公证的应用不再生效。
 
-If you see **"JadeAI is damaged and can't be opened"** rather than "cannot be
-verified", the download is incomplete or was tampered with — re-download it.
-A correctly built release reports "cannot be verified", which is clearable.
+如果提示的是 **“JadeAI 已损坏，无法打开”** 而不是“无法验证”，说明下载不完整或文件被改动过，重新下载即可。正常构建的版本提示的是“无法验证”，那个是可以放行的。
 
-**Windows.** On the SmartScreen prompt, click **More info → Run anyway**.
+**Windows。** SmartScreen 提示时点**更多信息 → 仍要运行**。
 
-### Where your data lives
+### 数据存在哪
 
-| Platform | Path |
+| 平台 | 路径 |
 |---|---|
 | macOS | `~/Library/Application Support/JadeAI/` |
 | Windows | `%APPDATA%\JadeAI\` |
 
-`jade.db` is the SQLite database; `jade-settings.json` holds window state and
-preferences. Uninstalling the app does not delete either — remove the folder to
-erase your data.
+`jade.db` 是 SQLite 数据库，`jade-settings.json` 存窗口状态和偏好。**卸载应用不会删除它们**，要清空数据请手动删除该目录。
 
-### Updates
+### 更新
 
-On launch the app asks GitHub once whether a newer version exists. If
-there is one, a small panel appears in the corner of the window — not a modal
-dialog — offering to **download the installer built for your machine**, so you
-don't pick between three files. Progress shows in the panel; when it finishes
-you can open the installer or reveal it in your file manager. It can be
-collapsed, dismissed, or silenced for that version.
+启动时应用会向 GitHub 查一次有没有新版本。有的话会在窗口右下角出现一个小提示条——不是弹窗——点「立即下载」它会**自动下载匹配你这台机器的那个安装包**，不用在三个文件里挑。进度显示在提示条里，下完可以直接打开安装包或在文件夹中显示。提示条可以收起、关闭，或者对这个版本不再提示。
 
-It stops there: installing is still a manual step (drag to Applications, or run
-the `.exe`). Silent install would need Squirrel, which refuses an ad-hoc signed
-app. Your data is untouched by an update.
+到此为止：安装仍需你手动完成（拖进「应用程序」，或运行 `.exe`）。静默安装要走 Squirrel，而它不接受 ad-hoc 签名的应用。更新不影响本机数据。
 
-**This is the only outbound request the app makes.** To turn it off, set
-`"updateCheckEnabled": false` in `jade-settings.json` (see the paths above) and
-restart.
+**这是本应用唯一的对外网络请求。** 想关掉的话，在上面那个目录的 `jade-settings.json` 里设 `"updateCheckEnabled": false`，然后重启。
 
-## Getting Started
+## 快速开始
 
-### Docker (Recommended)
-
+### Docker（推荐）
 
 ```bash
 cp .env.example .env.local
@@ -323,7 +229,6 @@ pnpm docker:run
 - 使用名为 `jadeai-data` 的 Docker volume 持久化 SQLite 数据
 - 在本机 `3003` 端口启动容器，访问 [http://localhost:3003](http://localhost:3003)
 
-
 如果你想只构建镜像，不启动容器：
 
 ```bash
@@ -332,18 +237,13 @@ pnpm docker:build
 
 如果你想在发布前做一次完整但可选的容器冒烟检查：
 
-
-> **AI Configuration:** No server-side AI env vars needed. Each user configures their own API Key, Base URL, and Model in **Settings > AI** within the app. If you don't have a provider key yet, [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) gives you 200+ models through a single OpenAI-compatible endpoint — see [AI provider setup](#ai-provider-setup).
-
-<details>
-<summary>With Google OAuth</summary>
-
-
 ```bash
 pnpm docker:smoke
 ```
 
 该命令会构建镜像、使用临时 Docker volume 启动容器，并检查应用可访问、SQLite 数据库已创建、Chromium 可执行以及 `/api/ai/models` API 可达。它不会并入 `pnpm release:check`，因此不会拖慢常规发布检查。
+
+> **AI 配置：** 无需服务端 AI 环境变量。每位用户在应用内的 **设置 > AI** 中自行配置 API Key、Base URL 和模型。还没有模型密钥的话，[OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 一个 Key 就能调用 200+ 模型，详见 [AI 模型配置](#ai-模型配置)。
 
 镜像现在基于 Debian slim 构建，而不是 Alpine，这样安装 Chromium 与 CJK / Emoji 字体时不会再依赖 `apk`，能规避部分代理环境下的 TLS / 超时问题。
 
@@ -445,28 +345,25 @@ cd JadeAI
 
 pnpm install
 cp .env.example .env.local
-
-
-
 ```
 
-#### Configure Environment
+#### 配置环境变量
 
-Edit `.env.local`:
+编辑 `.env.local`：
 
 ```bash
-# Auth (defaults to fingerprint mode, no config needed)
+# 认证（默认指纹模式，无需额外配置）
 AUTH_ENABLED=false
 ```
 
-> **AI Configuration:** No server-side env vars needed. Each user configures their own API Key, Base URL, and Model in **Settings > AI** within the app. See [AI provider setup](#ai-provider-setup) for using [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) to access 200+ models with one key.
+> **AI 配置：** 无需服务端环境变量。每位用户在应用内的 **设置 > AI** 中自行配置 API Key、Base URL 和模型。用 [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 一个 Key 调用 200+ 模型的方式见 [AI 模型配置](#ai-模型配置)。
 
-See `.env.example` for all available options (Google OAuth, custom SQLite path, etc.).
+查看 `.env.example` 了解所有可用选项（Google OAuth、自定义 SQLite 路径等）。
 
-#### Initialize Database & Run
+#### 初始化数据库并启动
 
 ```bash
-# Generate and run migrations
+# 生成并执行迁移
 
 pnpm db:generate
 pnpm db:migrate
@@ -475,101 +372,93 @@ pnpm dev
 
 默认数据库为 SQLite；如需 PostgreSQL，请在 `.env.local` 中设置：
 
-
 ```bash
 DB_TYPE=postgresql
 DATABASE_URL=postgresql://user:pass@host:5432/jadeai
+```
 
+## 部署视频
 
-## AI Provider Setup
+在 Bilibili 观看完整部署教程：
 
-All AI features (chat, resume generation, JD matching, mock interview, translation…) need an API key. JadeAI never stores keys on the server — you fill them in under **Settings > AI** in the app, and they stay in your browser's local storage.
+[![部署视频](https://i0.hdslb.com/bfs/archive/deployment-preview.jpg)](https://www.bilibili.com/video/BV1h7wQzSEYe/)
 
-Any OpenAI-compatible endpoint works. Point it at OpenAI, Anthropic, a self-hosted gateway, or a router.
+> [前往 Bilibili 观看 →](https://www.bilibili.com/video/BV1h7wQzSEYe/)
 
-### Using OrcaRouter (200+ models, one key)
+## AI 模型配置
 
-[OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) is an OpenAI-compatible AI gateway: one key gives you access to 200+ models (OpenAI, Anthropic, Gemini, DeepSeek, Qwen and more) at provider pricing with no per-token markup, plus automatic failover between providers. Handy if you'd rather not sign up with every vendor separately, or want to switch models inside JadeAI without swapping keys.
+所有 AI 功能（对话、简历生成、JD 匹配、模拟面试、翻译……）都需要一个 API Key。JadeAI 不在服务端保存密钥——你在应用内的 **设置 > AI** 中填写，密钥只存在浏览器的 localStorage 里。
 
-1. Register at [orcarouter.ai](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) (free tier, no credit card) and create an API key.
-2. In JadeAI, open **Settings > AI** and fill in:
+任何兼容 OpenAI 协议的端点都能用：OpenAI、Anthropic、自建网关，或者模型路由服务。
 
-| Field | Value |
-|-------|-------|
+### 使用 OrcaRouter（一个 Key 调用 200+ 模型）
+
+[OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 是一个兼容 OpenAI 协议的 AI 网关：一个 Key 即可调用 200+ 模型（OpenAI、Anthropic、Gemini、DeepSeek、Qwen 等），按供应商原价计费、不加价，并在供应商故障时自动切换。适合不想逐家注册、或者想在 JadeAI 里随时换模型又不用换 Key 的场景。
+
+1. 在 [orcarouter.ai](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 注册（有免费额度，无需信用卡），创建一个 API Key。
+2. 打开 JadeAI 的 **设置 > AI**，填写：
+
+| 配置项 | 填写内容 |
+|--------|----------|
 | Base URL | `https://api.orcarouter.ai/v1` |
-| API Key | your OrcaRouter key (`sk-...`) |
-| Model | any model ID from the [model list](https://www.orcarouter.ai/models) |
+| API Key | 你的 OrcaRouter 密钥（`sk-...`） |
+| 模型 | [模型列表](https://www.orcarouter.ai/models)中的任意模型 ID |
 
-3. Save, then use any AI feature in the editor.
+3. 保存后即可在编辑器里使用所有 AI 功能。
 
-To use OpenAI or Anthropic directly instead, just fill in that provider's base URL, key, and model ID in the same panel.
+如果想直连 OpenAI 或 Anthropic，在同一个面板里换成对应的 Base URL、Key 和模型 ID 即可。
 
-## Environment Variables
+## 环境变量
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `AUTH_SECRET` | Yes | — | Secret key for session encryption |
-| `SQLITE_PATH` | No | `./data/jade.db` | SQLite database file path |
-| `AUTH_ENABLED` | No | `false` | Enable Google OAuth (`true`) or use fingerprint mode (`false`) |
-| `JADE_RUNTIME` | No | — | Set to `desktop` for single local-user mode (skips fingerprint and NextAuth; the database has a single user with id `local`) |
-| `GOOGLE_CLIENT_ID` | When OAuth | — | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | When OAuth | — | Google OAuth client secret |
-| `APP_NAME` | No | `JadeAI` | Application display name |
-| `DEFAULT_LOCALE` | No | `zh` | Default language: `zh` or `en` |
+| 变量 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `AUTH_SECRET` | 是 | — | 会话加密密钥 |
+| `SQLITE_PATH` | 否 | `./data/jade.db` | SQLite 数据库文件路径 |
+| `AUTH_ENABLED` | 否 | `false` | 启用 Google OAuth（`true`）或使用指纹模式（`false`） |
+| `JADE_RUNTIME` | 否 | — | 设为 `desktop` 时切换到单本地用户模式（跳过指纹与 NextAuth，数据库只有一个 id 为 `local` 的用户） |
+| `GOOGLE_CLIENT_ID` | OAuth 时 | — | Google OAuth 客户端 ID |
+| `GOOGLE_CLIENT_SECRET` | OAuth 时 | — | Google OAuth 客户端密钥 |
+| `APP_NAME` | 否 | `JadeAI` | 应用显示名称 |
+| `DEFAULT_LOCALE` | 否 | `zh` | 默认语言：`zh` 或 `en` |
 
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start dev server with Turbopack |
-| `pnpm build` | Production build |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint |
-| `pnpm type-check` | TypeScript type checking |
-| `pnpm db:generate` | Generate Drizzle migrations |
-| `pnpm db:migrate` | Execute database migrations |
-| `pnpm db:studio` | Open Drizzle Studio (database GUI) |
-| `pnpm db:seed` | Seed database with sample data |
-
-## Project Structure
+## 项目结构
 
 ```
 src/
 ├── app/                        # Next.js App Router
-│   ├── [locale]/               # i18n routes (/zh/..., /en/...)
-│   │   ├── dashboard/          # Resume list & management
-│   │   ├── editor/[id]/        # Resume editor
-│   │   ├── preview/[id]/       # Full-screen preview
-│   │   ├── templates/          # Template gallery
-│   │   └── share/[token]/      # Public shared resume viewer
+│   ├── [locale]/               # 国际化路由 (/zh/..., /en/...)
+│   │   ├── dashboard/          # 简历列表与管理
+│   │   ├── editor/[id]/        # 简历编辑器
+│   │   ├── preview/[id]/       # 全屏预览
+│   │   ├── templates/          # 模板画廊
+│   │   └── share/[token]/      # 公开分享简历查看
 │   └── api/
-│       ├── ai/                 # AI endpoints
-│       │   ├── chat/           #   Streaming chat with tool calls
-│       │   ├── generate-resume/#   AI resume generation
-│       │   ├── jd-analysis/    #   JD match analysis
-│       │   ├── grammar-check/  #   Grammar & writing check
-│       │   ├── cover-letter/   #   Cover letter generation
-│       │   ├── translate/      #   Resume translation
-│       │   └── models/         #   List available AI models
-│       ├── resume/             # Resume CRUD, export, parse, share
-│       ├── share/              # Public share access
-│       ├── user/               # User profile & settings
-│       └── auth/               # NextAuth handlers
+│       ├── ai/                 # AI 接口
+│       │   ├── chat/           #   流式对话 + 工具调用
+│       │   ├── generate-resume/#   AI 生成简历
+│       │   ├── jd-analysis/    #   JD 匹配分析
+│       │   ├── grammar-check/  #   语法与写作检查
+│       │   ├── cover-letter/   #   求职信生成
+│       │   ├── translate/      #   简历翻译
+│       │   └── models/         #   可用 AI 模型列表
+│       ├── resume/             # 简历 CRUD、导出、解析、分享
+│       ├── share/              # 公开分享访问
+│       ├── user/               # 用户信息与设置
+│       └── auth/               # NextAuth 认证
 ├── components/
-│   ├── ui/                     # shadcn/ui base components
-│   ├── editor/                 # Editor canvas, sections, fields, dialogs
-│   ├── ai/                     # AI chat panel & bubble
-│   ├── preview/templates/      # 50 resume templates
-│   ├── dashboard/              # Dashboard cards, grid, dialogs
-│   └── layout/                 # Header, theme provider, locale switcher
+│   ├── ui/                     # shadcn/ui 基础组件
+│   ├── editor/                 # 编辑器画布、区块、字段、弹窗
+│   ├── ai/                     # AI 对话面板与气泡
+│   ├── preview/templates/      # 50 套简历模板
+│   ├── dashboard/              # 仪表盘卡片、网格、弹窗
+│   └── layout/                 # 头部、主题、语言切换
 ├── lib/
-│   ├── db/                     # Schema, repositories, migrations, adapters
-│   ├── auth/                   # Auth configuration
-│   └── ai/                     # AI prompts, tools, model config
-├── hooks/                      # Custom React hooks (7 hooks)
-├── stores/                     # Zustand stores (resume, editor, settings, UI, tour)
-└── types/                      # TypeScript type definitions
-
+│   ├── db/                     # Schema、仓库、迁移、适配器
+│   ├── auth/                   # 认证配置
+│   └── ai/                     # AI 提示词、工具、模型配置
+├── hooks/                      # 自定义 React Hooks（7 个）
+├── stores/                     # Zustand 状态仓库（简历、编辑器、设置、UI、引导）
+└── types/                      # TypeScript 类型定义
 ```
 
 数据库选择规则：
@@ -620,67 +509,53 @@ src/
 
 ---
 
-
 如果你想把 JadeAI 部署到自己的服务器，建议先用本地 Docker 流程验证，再迁移到正式环境。
 
+## 参与贡献
 
-### User
+欢迎贡献代码！请按照以下步骤：
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/user` | Get current user profile |
-| `PUT` | `/api/user` | Update user profile |
-| `GET` | `/api/user/settings` | Get user settings |
-| `PUT` | `/api/user/settings` | Update user settings |
+1. Fork 本仓库
+2. 创建功能分支：`git checkout -b feat/your-feature`
+3. 提交更改：`git commit -m 'feat: add your feature'`
+4. 推送分支：`git push origin feat/your-feature`
+5. 提交 Pull Request
 
-</details>
-
-## Contributing
-
-Contributions are welcome! Here's how to get started:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/your-feature`
-3. Commit your changes: `git commit -m 'feat: add your feature'`
-4. Push to the branch: `git push origin feat/your-feature`
-5. Open a Pull Request
-
-## FAQ
+## 常见问题
 
 <details>
-<summary><b>How does AI configuration work?</b></summary>
+<summary><b>AI 配置是如何工作的？</b></summary>
 
-JadeAI does not require server-side AI API keys. Each user configures their own AI provider (OpenAI, Anthropic, or any OpenAI-compatible endpoint), API key, and model in **Settings > AI** within the app. API keys are stored in the browser's local storage and are never sent to the server for storage.
+JadeAI 不需要在服务端配置 AI API 密钥。每位用户在应用内的 **设置 > AI** 中自行配置 AI 供应商（OpenAI、Anthropic 或任意兼容 OpenAI 协议的端点）、API Key 和模型。API 密钥仅存储在浏览器的 localStorage 中，不会发送到服务端存储。
 
-If you want a single key that covers 200+ models, use [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) with Base URL `https://api.orcarouter.ai/v1`. Full steps in [AI provider setup](#ai-provider-setup).
+想用一个 Key 覆盖 200+ 模型，可以用 [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17)，Base URL 填 `https://api.orcarouter.ai/v1`。完整步骤见 [AI 模型配置](#ai-模型配置)。
 
 </details>
 
 <details>
-<summary><b>How does authentication work without OAuth?</b></summary>
+<summary><b>不使用 OAuth 时认证如何工作？</b></summary>
 
-When `AUTH_ENABLED=false` (default), JadeAI uses browser fingerprinting via FingerprintJS. A unique fingerprint ID is generated for each browser and used as the user identifier. No login screen is shown — users can start building resumes immediately.
+当 `AUTH_ENABLED=false`（默认）时，JadeAI 使用 FingerprintJS 进行浏览器指纹识别。系统为每个浏览器生成唯一的指纹 ID 作为用户标识。无需登录界面 — 用户可以直接开始创建简历。
 
 </details>
 
 <details>
-<summary><b>How is PDF export implemented?</b></summary>
+<summary><b>PDF 导出是如何实现的？</b></summary>
 
-PDF export uses Puppeteer Core with @sparticuz/chromium. Each of the 50 templates has a dedicated server-side export handler that renders the resume to high-fidelity PDF. DOCX, HTML, TXT, and JSON exports are also supported.
+PDF 导出使用 Puppeteer Core + @sparticuz/chromium。50 套模板各有独立的服务端导出处理器，将简历渲染为高保真 PDF。同时支持 DOCX、HTML、TXT 和 JSON 格式导出。
 
 </details>
 
 ## Star History
 
 <a href="https://www.star-history.com/?repos=LingyiChen-AI%2FJadeAI&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=LingyiChen-AI/JadeAI&type=date&theme=dark&legend=top-left&sealed_token=LemjPqjrjM3gQ-PUAAFWkzoN8CiA06qE0dBVrf0gWA53oH1U0deeDwrP9rzreUm25934qefo8M1gzGe0kYTl1nrj60_Y_NLxCg4rXOXKtduiRyu2LO1qZA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=LingyiChen-AI/JadeAI&type=date&legend=top-left&sealed_token=LemjPqjrjM3gQ-PUAAFWkzoN8CiA06qE0dBVrf0gWA53oH1U0deeDwrP9rzreUm25934qefo8M1gzGe0kYTl1nrj60_Y_NLxCg4rXOXKtduiRyu2LO1qZA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=LingyiChen-AI/JadeAI&type=date&legend=top-left&sealed_token=LemjPqjrjM3gQ-PUAAFWkzoN8CiA06qE0dBVrf0gWA53oH1U0deeDwrP9rzreUm25934qefo8M1gzGe0kYTl1nrj60_Y_NLxCg4rXOXKtduiRyu2LO1qZA" />
- </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=LingyiChen-AI/JadeAI&type=date&theme=dark&legend=top-left&sealed_token=LemjPqjrjM3gQ-PUAAFWkzoN8CiA06qE0dBVrf0gWA53oH1U0deeDwrP9rzreUm25934qefo8M1gzGe0kYTl1nrj60_Y_NLxCg4rXOXKtduiRyu2LO1qZA" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=LingyiChen-AI/JadeAI&type=date&legend=top-left&sealed_token=LemjPqjrjM3gQ-PUAAFWkzoN8CiA06qE0dBVrf0gWA53oH1U0deeDwrP9rzreUm25934qefo8M1gzGe0kYTl1nrj60_Y_NLxCg4rXOXKtduiRyu2LO1qZA" />
+    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=LingyiChen-AI/JadeAI&type=date&legend=top-left&sealed_token=LemjPqjrjM3gQ-PUAAFWkzoN8CiA06qE0dBVrf0gWA53oH1U0deeDwrP9rzreUm25934qefo8M1gzGe0kYTl1nrj60_Y_NLxCg4rXOXKtduiRyu2LO1qZA" />
+  </picture>
 </a>
 
-## License
+## 许可证
 
 [Apache License 2.0](LICENSE)
-
