@@ -35,15 +35,20 @@ function getPdfRendererSkipReason(): string | undefined {
   }
 }
 
+// Real Chromium rendering is slow and variable on shared CI runners (each
+// generatePdf call cold-launches a browser), so give renderer tests a generous
+// timeout instead of relying on the 5s default.
+const PDF_RENDERER_TEST_TIMEOUT = 60_000;
+
 function testWithPdfRenderer(
   name: string,
   fn: () => Promise<void>,
 ): void {
   if (PDF_RENDERER_SKIP_REASON) {
-    it(name, { skip: Boolean(PDF_RENDERER_SKIP_REASON) }, fn);
+    it(name, { skip: Boolean(PDF_RENDERER_SKIP_REASON), timeout: PDF_RENDERER_TEST_TIMEOUT }, fn);
     return;
   }
-  it(name, fn);
+  it(name, fn, PDF_RENDERER_TEST_TIMEOUT);
 }
 
 async function renderPdfArtifact(
