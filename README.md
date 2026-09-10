@@ -6,16 +6,20 @@
 
 拖拽编辑、AI 优化、版本历史、模拟面试、多格式导出，一站式完成简历制作与求职准备。
 
+> **本项目是 fork** — 原始项目：[**LingyiChen-AI/JadeAI**](https://github.com/LingyiChen-AI/JadeAI)（原作者 Lingyi Chen 等）。
+> 本仓库由 [build-workbench](https://github.com/build-workbench) 组织维护，遵循上游 Apache-2.0 许可。
+> 本仓库**不发布构建产物**，应用下载与最新动态请前往 [上游 Releases](https://github.com/LingyiChen-AI/JadeAI/releases/latest)。
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org/)
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-222?logo=githubpages)](https://lessup.github.io/JadeAI)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-222?logo=githubpages)](https://build-workbench.github.io/JadeAI/)
 
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ed)](https://hub.docker.com/r/twwch/jadeai)
-[![Powered by OrcaRouter](https://img.shields.io/badge/Powered_by-OrcaRouter-2563eb)](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17)
+[![Powered by OrcaRouter](https://img.shields.io/badge/Powered_by-OrcaRouter-2563eb)](https://www.orcarouter.ai/)
 
 
 [更新日志](./changelog/)
@@ -24,7 +28,7 @@
 
 ---
 
-> 仓库首页：https://lessup.github.io/JadeAI  
+> 仓库首页：https://build-workbench.github.io/JadeAI/  
 > GitHub Pages 只承载项目主页与说明文档；完整应用需要服务端运行环境来支持 API、认证、数据库和导出能力。
 
 ## JadeAI 是什么
@@ -98,7 +102,7 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 - **语法与写作检查**：识别弱表达、语法问题与可优化内容
 - **多语言翻译**：跨语言转换并保留技术术语
 - **AI 求职信**：结合简历和 JD 生成定制求职信
-- **灵活 AI 供应商**：支持 OpenAI、Anthropic 及任意兼容 OpenAI 的 API 端点（例如 [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17)，一个 Key 即可调用 200+ 模型）；用户在应用内自行配置密钥
+- **灵活 AI 供应商**：支持 OpenAI、Anthropic 及任意兼容 OpenAI 的 API 端点（例如 [OrcaRouter](https://www.orcarouter.ai/)，一个 Key 即可调用 200+ 模型）；用户在应用内自行配置密钥
 
 ### 版本与恢复
 
@@ -243,7 +247,7 @@ pnpm docker:smoke
 
 该命令会构建镜像、使用临时 Docker volume 启动容器，并检查应用可访问、SQLite 数据库已创建、Chromium 可执行以及 `/api/ai/models` API 可达。它不会并入 `pnpm release:check`，因此不会拖慢常规发布检查。
 
-> **AI 配置：** 无需服务端 AI 环境变量。每位用户在应用内的 **设置 > AI** 中自行配置 API Key、Base URL 和模型。还没有模型密钥的话，[OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 一个 Key 就能调用 200+ 模型，详见 [AI 模型配置](#ai-模型配置)。
+> **AI 配置：** 无需服务端 AI 环境变量。每位用户在应用内的 **设置 > AI** 中自行配置 API Key、Base URL 和模型。还没有模型密钥的话，[OrcaRouter](https://www.orcarouter.ai/) 一个 Key 就能调用 200+ 模型，详见 [AI 模型配置](#ai-模型配置)。
 
 镜像现在基于 Debian slim 构建，而不是 Alpine，这样安装 Chromium 与 CJK / Emoji 字体时不会再依赖 `apk`，能规避部分代理环境下的 TLS / 超时问题。
 
@@ -356,7 +360,7 @@ cp .env.example .env.local
 AUTH_ENABLED=false
 ```
 
-> **AI 配置：** 无需服务端环境变量。每位用户在应用内的 **设置 > AI** 中自行配置 API Key、Base URL 和模型。用 [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 一个 Key 调用 200+ 模型的方式见 [AI 模型配置](#ai-模型配置)。
+> **AI 配置：** 无需服务端环境变量。每位用户在应用内的 **设置 > AI** 中自行配置 API Key、Base URL 和模型。用 [OrcaRouter](https://www.orcarouter.ai/) 一个 Key 调用 200+ 模型的方式见 [AI 模型配置](#ai-模型配置)。
 
 查看 `.env.example` 了解所有可用选项（Google OAuth、自定义 SQLite 路径等）。
 
@@ -393,9 +397,9 @@ DATABASE_URL=postgresql://user:pass@host:5432/jadeai
 
 ### 使用 OrcaRouter（一个 Key 调用 200+ 模型）
 
-[OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 是一个兼容 OpenAI 协议的 AI 网关：一个 Key 即可调用 200+ 模型（OpenAI、Anthropic、Gemini、DeepSeek、Qwen 等），按供应商原价计费、不加价，并在供应商故障时自动切换。适合不想逐家注册、或者想在 JadeAI 里随时换模型又不用换 Key 的场景。
+[OrcaRouter](https://www.orcarouter.ai/) 是一个兼容 OpenAI 协议的 AI 网关：一个 Key 即可调用 200+ 模型（OpenAI、Anthropic、Gemini、DeepSeek、Qwen 等），按供应商原价计费、不加价，并在供应商故障时自动切换。适合不想逐家注册、或者想在 JadeAI 里随时换模型又不用换 Key 的场景。
 
-1. 在 [orcarouter.ai](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17) 注册（有免费额度，无需信用卡），创建一个 API Key。
+1. 在 [orcarouter.ai](https://www.orcarouter.ai/) 注册（有免费额度，无需信用卡），创建一个 API Key。
 2. 打开 JadeAI 的 **设置 > AI**，填写：
 
 | 配置项 | 填写内容 |
@@ -528,7 +532,7 @@ src/
 
 JadeAI 不需要在服务端配置 AI API 密钥。每位用户在应用内的 **设置 > AI** 中自行配置 AI 供应商（OpenAI、Anthropic 或任意兼容 OpenAI 协议的端点）、API Key 和模型。API 密钥仅存储在浏览器的 localStorage 中，不会发送到服务端存储。
 
-想用一个 Key 覆盖 200+ 模型，可以用 [OrcaRouter](https://www.orcarouter.ai/ref/ref_1f47b025a90949564e17)，Base URL 填 `https://api.orcarouter.ai/v1`。完整步骤见 [AI 模型配置](#ai-模型配置)。
+想用一个 Key 覆盖 200+ 模型，可以用 [OrcaRouter](https://www.orcarouter.ai/)，Base URL 填 `https://api.orcarouter.ai/v1`。完整步骤见 [AI 模型配置](#ai-模型配置)。
 
 </details>
 
