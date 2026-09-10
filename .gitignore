@@ -38,12 +38,15 @@ next-env.d.ts
 # database
 /data/
 
-.claude
+# AI tools (local only)
+.claude/
+.commandcode/
+.codex/
+.agents/
+.superpowers/
 
 jadeai-data/*
 
-.superpowers
-.agents
 .worktrees
 
 test
