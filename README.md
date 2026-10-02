@@ -18,7 +18,6 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-222?logo=githubpages)](https://build-workbench.github.io/JadeAI/)
 
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ed)](https://hub.docker.com/r/twwch/jadeai)
 [![Powered by OrcaRouter](https://img.shields.io/badge/Powered_by-OrcaRouter-2563eb)](https://www.orcarouter.ai/)
 
 
@@ -42,19 +41,17 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 
 ## 最近更新
 
-### v0.5.0 · 桌面客户端首发
-- **[桌面客户端](#桌面客户端)** 正式发布：macOS（Apple Silicon / Intel）与 Windows x64 安装包，零配置、无需账号、数据全在本机
-- 客户端内置更新提示，可直接下载对应架构的安装包
-- Web 与客户端统一发版：同一个 tag 同时产出 Docker 镜像与三平台安装包
-- 修复导出功能在容器中运行一段时间后失效（#95）
-- 简历子项支持上移 / 下移 / 在上方插入（#89，感谢 @Silas-Zhu）
+### v0.7.0 · 面试蓝图（2026-08-26）
+- 招聘模块新增「面试蓝图」：按蓝图元数据与校验规则生成题目、两阶段出题编排、按维度值决定题量
+- 基于 JD 自动建议考察维度；面试台展示题目分类
+- 新增只读的面试记录视图与评价重新生成；候选人对比报告补充链接
+- 收紧出题契约：强制 JD 覆盖与蓝图组合约束，评分维度与题型对齐
 
-### v0.3.4 · 主题色系统与配色切换
-- 引入语义化 `--brand-*` CSS token，下线全站 60+ 文件硬编码 `pink-*`
-- 用户菜单新增主题色切换器，三套预设：**薄荷**（默认）、**经典蓝**、**玫粉**
-- SSR 安全的防闪烁初始化；老版本 `localStorage` 值自动迁移
-- 简历主题编辑器新增「薄荷」预设
-- 导出通道（PDF / HTML / DOCX）统一读取 `src/lib/brand-constants.ts`
+### v0.6.0 · 面试官侧招聘模块（2026-08-22）
+- 岗位/候选人管理、简历上传解析、生成面试题与面试评价接口
+- 面试台模式：准备 / 面试台 / 复盘三页，逐题记录答案并优先用于评价
+- 候选人档案卡 + 阶段色带进度、岗位概览与候选人横向对比表
+- 全站主题色统一；主键迁移为 10 位短 id
 
 ## 核心能力
 
@@ -154,67 +151,6 @@ JadeAI 是一个面向简历编辑、AI 优化和求职准备的全栈应用。�
 | 认证 | NextAuth.js v5、FingerprintJS |
 | 导出 | Puppeteer Core、Chromium、DOCX |
 | 国际化 | next-intl |
-
-## 桌面客户端
-
-**欢迎试用桌面客户端** —— 不用部署、不用注册、不用联网，下载装上就能写简历。
-
-[![下载客户端](https://img.shields.io/badge/下载客户端-macOS%20%7C%20Windows-2ea44f?style=for-the-badge)](https://github.com/LingyiChen-AI/JadeAI/releases/latest)
-
-它跑的是和 Web 版**完全相同**的应用——50 套模板、AI 润色、JD 匹配、模拟面试、多格式导出，一个都不少。区别只在于服务跑在你自己的电脑上：
-
-- **零配置** —— 装完打开就能用，不需要 Docker、不需要数据库、不需要 `AUTH_SECRET`
-- **不需要账号** —— 本机单用户，没有登录，没有指纹识别
-- **数据只在本机** —— 简历存在你电脑上的一个 SQLite 文件里，不经过任何服务器
-- **AI 用你自己的 Key** —— 在应用内「设置 → AI」里填，请求直连你配置的服务商
-- **自动提示更新** —— 有新版时右下角弹个小条，点一下就下载好对应你机器的安装包
-
-> 唯一的对外网络请求是启动时问 GitHub 有没有新版本，可以关掉（见下文「更新」）。
-
-### 下载
-
-从 **[最新 Release](https://github.com/LingyiChen-AI/JadeAI/releases/latest)** 下载对应你系统的包：
-
-| 平台 | 文件 |
-|---|---|
-| macOS（Apple Silicon，M 系列芯片） | `JadeAI-*-mac-arm64.dmg` |
-| macOS（Intel） | `JadeAI-*-mac-x64.dmg` |
-| Windows（x64） | `JadeAI-*-win-x64-setup.exe` |
-
-### 首次打开
-
-安装包带的是 **ad-hoc 签名**——有效，但匿名。没有 Apple Developer ID，也没有公证，所以系统会拦下第一次启动。这是预期行为。
-
-**macOS。** 在终端跑一次这条，然后正常双击打开：
-
-```bash
-xattr -dr com.apple.quarantine /Applications/JadeAI.app
-```
-
-也可以走图形界面：被拦下后打开 **系统设置 → 隐私与安全性**，拉到底点**仍要打开**。
-
-> 不要依赖“右键 → 打开”。macOS 15 起 Apple 移除了这个绕过方式，对未公证的应用不再生效。
-
-如果提示的是 **“JadeAI 已损坏，无法打开”** 而不是“无法验证”，说明下载不完整或文件被改动过，重新下载即可。正常构建的版本提示的是“无法验证”，那个是可以放行的。
-
-**Windows。** SmartScreen 提示时点**更多信息 → 仍要运行**。
-
-### 数据存在哪
-
-| 平台 | 路径 |
-|---|---|
-| macOS | `~/Library/Application Support/JadeAI/` |
-| Windows | `%APPDATA%\JadeAI\` |
-
-`jade.db` 是 SQLite 数据库，`jade-settings.json` 存窗口状态和偏好。**卸载应用不会删除它们**，要清空数据请手动删除该目录。
-
-### 更新
-
-启动时应用会向 GitHub 查一次有没有新版本。有的话会在窗口右下角出现一个小提示条——不是弹窗——点「立即下载」它会**自动下载匹配你这台机器的那个安装包**，不用在三个文件里挑。进度显示在提示条里，下完可以直接打开安装包或在文件夹中显示。提示条可以收起、关闭，或者对这个版本不再提示。
-
-到此为止：安装仍需你手动完成（拖进「应用程序」，或运行 `.exe`）。静默安装要走 Squirrel，而它不接受 ad-hoc 签名的应用。更新不影响本机数据。
-
-**这是本应用唯一的对外网络请求。** 想关掉的话，在上面那个目录的 `jade-settings.json` 里设 `"updateCheckEnabled": false`，然后重启。
 
 ## 快速开始
 
@@ -344,7 +280,7 @@ PUSH=false PLATFORMS=linux/amd64 IMAGE_REPOSITORY=shuai0/jadeai pnpm docker:publ
 ### 本地开发
 
 ```bash
-git clone https://github.com/LessUp/JadeAI.git
+git clone https://github.com/build-workbench/JadeAI.git
 cd JadeAI
 
 pnpm install
