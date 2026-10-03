@@ -5,7 +5,7 @@
 ## 1. 分歧概况
 
 - 上游地址：`https://github.com/LingyiChen-AI/JadeAI`，本地 remote 名为 `upstream`。
-- 截至 2026-10-04 同步（v0.7.0）：fork 领先上游约 96 个提交；上游 main 自 2026-09-03 起无新提交。
+- 截至 2026-10-04 同步（v0.7.0）：fork 领先上游约百个提交（精确值用 `git rev-list --count upstream/main..main` 查询）；上游 main 自 2026-09-03 起无新提交。
 - fork 自 v0.4.0 起独立版本：`package.json` 的 `version` 为唯一来源，Git tag / Release / Docker tag 统一 `v<version>`；上游 tag 停在 v0.3.x。
 - 定位差异：fork 删除 Electron 桌面客户端及 `desktop-release.yml`，新增/重写 Docker 构建运行链、GitHub Pages 站点、CI 工作流、PDF 分页策略与主题系统等。
 
@@ -39,7 +39,7 @@ fork 的改动应尽量落在独立的新文件中——以下位置为 fork 自
 | `messages/zh.json`、`en.json` | 会新增 key | fork 也频繁修改 | 通常自动合并；合并后用 `node -e "JSON.parse(...)"` 之类校验 JSON 合法 |
 | `.github/workflows/issue-spam-guard.yml` | 同名文件 | fork 自有版本 | 保留 fork |
 
-仓库已开启 `git rerere`（本手册生效前 2026-10-04 的合并已记录 README.md 与 .gitignore 的解决方案）：重复出现的相同冲突会自动复用历史解决方案，无需手工再处理。
+维护者本机 Git 已开启 `git rerere`（`~/.gitconfig` 全局配置；解决方案缓存 `.git/rr-cache` 也只存本机），2026-10-04 的合并已记录 README.md 与 .gitignore 的解决方案，本机重复冲突会自动复用。注意：CI 与其他机器上 rerere **不生效**——需在该环境执行 `git config rerere.enabled true` 并重新积累缓存，或按本表手工处理。
 
 ## 4. 已拒绝的上游内容（避免重复评估）
 
@@ -55,7 +55,9 @@ fork 与上游的版本号体系独立（fork 从 v0.4.0 起步，上游会继�
 +refs/tags/*:refs/tags/upstream/*
 ```
 
-之后 `git fetch upstream` 拉到的上游 tag 一律落在 `refs/tags/upstream/*`（如 `upstream/v0.4.0`），不会覆盖本 fork 自己的 tag。历史上已拉取的 v0.3.0–v0.3.4 仍在全局命名空间，但它们都指向 fork 历史内的祖先提交，无风险。
+之后 `git fetch upstream` 拉到的上游 tag 一律落在 `refs/tags/upstream/*`（如 `upstream/v0.4.0`），不会覆盖本 fork 自己的 tag。早期同步拉取的上游 tag（v0.0.1–v0.3.4）仍留在全局命名空间，均指向 fork 历史内的祖先提交，无风险；`upstream/*` 命名空间内是权威副本。
+
+上游 tag 为轻量 tag（直接指向 commit），日常 `git push` / `--follow-tags` 不会把它们推到 origin；但**不要**对 origin 使用 `git push --tags`——那会把整个 `upstream/*` 命名空间推上去（无害但污染 fork 仓库的 tag 列表）。
 
 新克隆仓库后执行一次即可：
 
@@ -94,3 +96,5 @@ grep -ri launchai src/ messages/ README.md
 ## 7. 同步检查自动化
 
 `.github/workflows/upstream-sync.yml` 每周一（UTC）自动运行：fetch 上游 → 统计领先提交数 → 若有新提交且不存在未关闭的提醒 issue，则自动创建「上游同步提醒」issue（附新提交清单与本手册链接）；无新提交时不产生任何动静。支持在 Actions 页面手动触发（workflow_dispatch）。
+
+提醒 issue 依赖仓库的 Issues 功能：build-workbench/JadeAI 已于 2026-10-04 开启（GitHub fork 默认关闭 Issues；其他仓库复用本 workflow 前需在 Settings → General → Features 勾选 Issues，否则 `gh issue create` 会失败）。提醒正文由 `printf` 参数生成，上游提交信息即使含反引号等字符也只会按字面渲染，无命令注入风险。
