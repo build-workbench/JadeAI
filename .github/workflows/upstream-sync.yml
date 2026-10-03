@@ -1,0 +1,69 @@
+name: Upstream Sync Check
+
+on:
+  schedule:
+    # 每周一 03:23 UTC 检查上游是否有新提交
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream and count new commits
+        id: diff
+        run: |
+          git remote add upstream https://github.com/LingyiChen-AI/JadeAI.git
+          git fetch upstream main --no-tags
+          count=$(git rev-list --count HEAD..upstream/main)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" -gt 0 ]; then
+            {
+              echo 'commits<<EOF'
+              git log --oneline --no-decorate HEAD..upstream/main
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open reminder issue when upstream is ahead
+        if: steps.diff.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COUNT: ${{ steps.diff.outputs.count }}
+          COMMITS: ${{ steps.diff.outputs.commits }}
+          NOTES_URL: ${{ github.server_url }}/${{ github.repository }}/blob/main/docs/fork-notes.md
+        run: |
+          existing=$(gh issue list --state open --search "上游同步提醒 in:title" --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "已存在未关闭的同步提醒 issue，跳过创建"
+            exit 0
+          fi
+          {
+            printf '%s\n' \
+              '## 上游同步检查' \
+              '' \
+              "upstream/main 比 \`main\` 领先 **${COUNT}** 个提交，建议安排一次同步合并。" \
+              '' \
+              '### 上游新提交' \
+              '' \
+              '```' \
+              "${COMMITS}" \
+              '```' \
+              '' \
+              "冲突处理策略与同步步骤见 [docs/fork-notes.md](${NOTES_URL})。"
+          } > body.md
+          gh issue create \
+            --title "上游同步提醒：upstream/main 领先 ${COUNT} 个提交" \
+            --body-file body.md
