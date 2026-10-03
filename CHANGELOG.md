@@ -6,8 +6,13 @@ JadeAI 是一个 AI 驱动的简历与求职工作台（Next.js / React / TypeSc
 
 ## [Unreleased]
 
+### 新增
+
+- 官网落地页导航新增「招聘」入口（桌面端与移动端），同步上游并补齐中英文案。
+
 ### 变更
 
+- 同步上游至 2026-09-03：仅采纳 landing 招聘导航入口，不采纳 LaunchAI 推广徽章与 `.gitignore` 等价改写；新增 fork 维护手册 `docs/fork-notes.md` 与每周上游同步提醒 workflow。
 - 同步上游 217 个提交，并入面试官侧招聘模块与 Electron 桌面客户端；随后移除桌面客户端，重新聚焦 Docker Web 部署。
 - README 本土化为纯中文，移除英文版与废弃的 zh-CN README，并补充 OrcaRouter 等 AI 提供商配置说明；整理仓库忽略规则，停止追踪 AI 工具产物。
 
