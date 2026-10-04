@@ -34,7 +34,7 @@ fork 的改动应尽量落在独立的新文件中——以下位置为 fork 自
 | `.gitignore` | `.superpowers/*` 写法 | `.superpowers/` 写法 | 保留 fork |
 | `electron/` | main 仍在开发，另有 `desktop` 分支 | 已整体删除 | 保持删除；若合并后目录重现，`git rm -r electron` |
 | `src/middleware.ts` | 存在 | 已改名 `src/proxy.ts` | 保留改名；上游对 middleware 的实质修改需手工对照移植到 `proxy.ts` |
-| `package.json` | `version: 0.1.0` | 独立版本号与仓库元数据 | 保留 fork |
+| `package.json` | `version: 0.1.0`（上游不随 tag 更新，版本靠 tag 标记） | 与上游共享版本号 + fork 仓库元数据 | 保留 fork |
 | `pnpm-lock.yaml` | 随上游依赖变化 | 可能双方都变 | 合并后必须 `pnpm install --frozen-lockfile` 校验，失败则按上游语义重新生成并回归测试 |
 | `messages/zh.json`、`en.json` | 会新增 key | fork 也频繁修改 | 通常自动合并；合并后用 `node -e "JSON.parse(...)"` 之类校验 JSON 合法 |
 | `.github/workflows/issue-spam-guard.yml` | 同名文件 | fork 自有版本 | 保留 fork |
@@ -88,10 +88,13 @@ pnpm install --frozen-lockfile
 pnpm lint && pnpm type-check && pnpm test
 DB_TYPE=sqlite SQLITE_PATH=":memory:" pnpm build
 
-# 5. 确认推广内容未混入
+# 5. （改动涉及依赖、导出或 Docker 相关时）镜像级冒烟
+pnpm docker:build && pnpm docker:smoke
+
+# 6. 确认推广内容未混入
 grep -ri launchai src/ messages/ README.md
 
-# 6. 合并提交写明采纳/拒绝了什么；用户可见变化写入 CHANGELOG.md [Unreleased]
+# 7. 合并提交写明采纳/拒绝了什么；用户可见变化写入 CHANGELOG.md [Unreleased]
 ```
 
 **本地环境备注**：`.agents/`、`agent/`、`data/`、`.worktrees/` 是 gitignored 的 AI 工具目录。它们已被 `tsconfig.json` 的 `exclude` 与 `eslint.config.mjs` 的 `globalIgnores` 排除，`pnpm lint` / `type-check` / `build` 不再受其影响（CI 全新检出本来也看不到这些目录）。若日后新增 AI 工具目录，同步扩展这两处列表。
