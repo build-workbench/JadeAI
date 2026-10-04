@@ -5,7 +5,8 @@
 ## 1. 分歧概况
 
 - 上游地址：`https://github.com/LingyiChen-AI/JadeAI`，本地 remote 名为 `upstream`。
-- 截至 2026-10-04 同步（v0.7.0）：fork 领先上游约百个提交（精确值用 `git rev-list --count upstream/main..main` 查询）；上游 main 自 2026-09-03 起无新提交。
+- 最近同步：2026-10-04 → 上游 `aca6fbb`（本仓库 merge `b7402d5`）。此后上游 main 无新提交。
+- 截至 2026-10-04 同步（v0.7.0）：fork 领先上游约百个提交（精确值用 `git rev-list --count upstream/main..main` 查询）。
 - 版本约定：fork 与上游**共享版本号**（当前 v0.7.0），tag 指向上游对应版本的基线提交（origin 上亦如此），fork 自身增量只在 main 上；仓库不创建 GitHub Release，Docker 镜像从 main HEAD 构建。
 - 定位差异：fork 删除 Electron 桌面客户端及 `desktop-release.yml`，新增/重写 Docker 构建运行链、GitHub Pages 站点、CI 工作流、PDF 分页策略与主题系统等。
 
