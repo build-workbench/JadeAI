@@ -6,7 +6,7 @@
 
 - 上游地址：`https://github.com/LingyiChen-AI/JadeAI`，本地 remote 名为 `upstream`。
 - 截至 2026-10-04 同步（v0.7.0）：fork 领先上游约百个提交（精确值用 `git rev-list --count upstream/main..main` 查询）；上游 main 自 2026-09-03 起无新提交。
-- fork 自 v0.4.0 起独立版本：`package.json` 的 `version` 为唯一来源，Git tag / Release / Docker tag 统一 `v<version>`；上游 tag 停在 v0.3.x。
+- 版本约定：fork 与上游**共享版本号**（当前 v0.7.0），tag 指向上游对应版本的基线提交（origin 上亦如此），fork 自身增量只在 main 上；仓库不创建 GitHub Release，Docker 镜像从 main HEAD 构建。
 - 定位差异：fork 删除 Electron 桌面客户端及 `desktop-release.yml`，新增/重写 Docker 构建运行链、GitHub Pages 站点、CI 工作流、PDF 分页策略与主题系统等。
 
 ## 2. 自有模块（零冲突区）
@@ -46,18 +46,20 @@ fork 的改动应尽量落在独立的新文件中——以下位置为 fork 自
 - **LaunchAI 推广徽章**（上游 `ac7bf23`、`9d95236`，及 `ef3e3af` 中 footer 部分）：上游作者为其关联产品导流。徽章硬编码 `#1f2a24`、`#f8f8f6` 等色值，违反本仓库「主题色必须用语义化 `--brand-*` token」的约束，且引入对 `launchai.tools` 的外部图片依赖。合并后如发现 `launchai` 字样一律剔除：`grep -ri launchai src/ messages/ README.md`。
 - **`.gitignore` 的 `.superpowers/*` 写法**：与 fork 现有 `.superpowers/` 语义等价，无需采纳。
 
-## 5. 上游 tag 命名空间
+## 5. tag 与版本号事实（2026-10-04 全量普查）
 
-fork 与上游的版本号体系独立（fork 从 v0.4.0 起步，上游会继续打 v0.4.0+ 的 tag）。为避免撞名，本地 `upstream` remote 配置了命名空间化的 fetch refspec：
+- 上游 tag 已发布到 **v0.7.0**（2026-08-26），并非停留在 v0.3.x；上游 v0.4.0–v0.7.0 是 annotated tag。
+- 本 fork 与上游共享版本号：本地与 origin 的 `v0.4.0`–`v0.7.0` 指向上游对应版本的提交（如 `v0.7.0` → 上游 `1d8d7b6`），tag 仅作上游基线标记，不创建 Release。
+- 上游 v0.3.1–v0.3.4 与 v0.4.0–v0.7.0 的提交在 fork 历史内；v0.0.1–v0.3.0 的早期 tag 指向 fork 历史之外的提交（早期仓库脉络不同），仅作参考。
+
+本地 `upstream` remote 配置了命名空间化的 fetch refspec，上游 tag 一律落在 `refs/tags/upstream/*`，永不触碰全局命名空间的同名 tag（v0.4.0–v0.7.0 同名同目标，若被强制覆盖会破坏基线标记）：
 
 ```
 +refs/heads/*:refs/remotes/upstream/*
 +refs/tags/*:refs/tags/upstream/*
 ```
 
-之后 `git fetch upstream` 拉到的上游 tag 一律落在 `refs/tags/upstream/*`（如 `upstream/v0.4.0`），不会覆盖本 fork 自己的 tag。早期同步拉取的上游 tag（v0.0.1–v0.3.4）仍留在全局命名空间，均指向 fork 历史内的祖先提交，无风险；`upstream/*` 命名空间内是权威副本。
-
-上游 tag 为轻量 tag（直接指向 commit），日常 `git push` / `--follow-tags` 不会把它们推到 origin；但**不要**对 origin 使用 `git push --tags`——那会把整个 `upstream/*` 命名空间推上去（无害但污染 fork 仓库的 tag 列表）。
+推送防护：本仓库已本地设置 `push.followTags false`（覆盖维护者全局的 `true`）——上游 v0.4.0–v0.7.0 是 annotated tag 且目标提交可达，若不关闭，`git push` 会把 `upstream/*` 命名空间 tag 推到 origin 造成污染。同样**不要**对 origin 使用 `git push --tags`。
 
 新克隆仓库后执行一次即可：
 
@@ -65,6 +67,7 @@ fork 与上游的版本号体系独立（fork 从 v0.4.0 起步，上游会继�
 git remote add upstream https://github.com/LingyiChen-AI/JadeAI.git
 git config --replace-all remote.upstream.fetch '+refs/heads/*:refs/remotes/upstream/*'
 git config --add remote.upstream.fetch '+refs/tags/*:refs/tags/upstream/*'
+git config push.followTags false
 ```
 
 ## 6. 标准同步流程
@@ -91,10 +94,12 @@ grep -ri launchai src/ messages/ README.md
 # 6. 合并提交写明采纳/拒绝了什么；用户可见变化写入 CHANGELOG.md [Unreleased]
 ```
 
-**本地环境备注**：`.agents/`、`agent/`、`data/` 是 gitignored 的 AI 工具目录，其中的脚本可能触发 `pnpm lint` / `pnpm type-check` 报错（如 prefer-const、TS5097）。CI 全新检出看不到这些目录，属本地噪音，勿据此类报错改动仓库代码。
+**本地环境备注**：`.agents/`、`agent/`、`data/`、`.worktrees/` 是 gitignored 的 AI 工具目录。它们已被 `tsconfig.json` 的 `exclude` 与 `eslint.config.mjs` 的 `globalIgnores` 排除，`pnpm lint` / `type-check` / `build` 不再受其影响（CI 全新检出本来也看不到这些目录）。若日后新增 AI 工具目录，同步扩展这两处列表。
 
 ## 7. 同步检查自动化
 
 `.github/workflows/upstream-sync.yml` 每周一（UTC）自动运行：fetch 上游 → 统计领先提交数 → 若有新提交且不存在未关闭的提醒 issue，则自动创建「上游同步提醒」issue（附新提交清单与本手册链接）；无新提交时不产生任何动静。支持在 Actions 页面手动触发（workflow_dispatch）。
 
 提醒 issue 依赖仓库的 Issues 功能：build-workbench/JadeAI 已于 2026-10-04 开启（GitHub fork 默认关闭 Issues；其他仓库复用本 workflow 前需在 Settings → General → Features 勾选 Issues，否则 `gh issue create` 会失败）。提醒正文由 `printf` 参数生成，上游提交信息即使含反引号等字符也只会按字面渲染，无命令注入风险。
+
+**启用前提（重要）**：GitHub fork 上定时 workflow **默认禁用**——推送后需在 Actions 页找到 Upstream Sync Check 手动 Enable；另外仓库 60 天无活动时 GitHub 会自动停用定时任务，届时同样在 Actions 页重新启用。
