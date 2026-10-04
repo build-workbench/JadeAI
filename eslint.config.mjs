@@ -30,6 +30,10 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".worktrees/**",
+    // gitignored AI 工具目录（AGENTS.md：AI 工具本地状态不入库）
+    ".agents/**",
+    "agent/**",
+    "data/**",
   ]),
 ]);
 
